@@ -16,6 +16,7 @@ interface Problem {
   tags: string[];
   description?: string;
   starterCode?: string;
+  solution?: string;
   examples?: { input: string; expected: string }[];
 }
 
@@ -96,21 +97,41 @@ const phases: Phase[] = [
   }
 ];
 
+import { generateSolution } from '../services/gemini';
 
 // Answer Modal Component
 const AnswerModal = ({ problem, onClose }: { problem: Problem; onClose: () => void }) => {
-  const getExplanation = (title: string) => {
-    // Generate explanation based on problem type
-    const explanations: Record<string, string> = {
-      'Two Sum': `Use a hash map to store each number and its index as you iterate. For each number, check if (target - current) exists in the map. This gives O(n) time complexity instead of O(n²) with nested loops.`,
-      'Reverse Linked List': `Use three pointers: prev (starts null), curr (starts at head), and next. In each iteration, save next, point curr.next to prev, move prev to curr, and curr to next. Continue until curr is null.`,
-      'Valid Parentheses': `Use a stack. Push opening brackets onto the stack. For closing brackets, check if the stack top matches. If not, or if stack is empty when expecting a match, return false.`,
-      'Binary Search': `Compare target with middle element. If equal, return index. If target is smaller, search left half. If larger, search right half. Repeat until found or search space is empty.`,
-      'Climbing Stairs': `This is a Fibonacci sequence! dp[i] = dp[i-1] + dp[i-2]. You can reach step i either from step i-1 (1 step) or step i-2 (2 steps).`,
-      'Merge Intervals': `Sort intervals by start time. Iterate through and merge overlapping intervals by comparing current start with previous end. If overlap, extend the end; otherwise, add new interval.`,
-    };
-    return explanations[title] || `Analyze the problem constraints and identify the pattern. Consider time/space trade-offs. Start with a brute force approach, then optimize using appropriate data structures.`;
+  const [aiSolution, setAiSolution] = useState<{ solution: string; explanation: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // If no solution in DB, fetch from AI
+  useEffect(() => {
+    if (!problem.solution && !aiSolution && !loading) {
+      fetchAiSolution();
+    }
+  }, [problem]);
+
+  const fetchAiSolution = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await generateSolution(
+        problem.title,
+        problem.description || '',
+        problem.starterCode || '',
+        problem.examples || []
+      );
+      setAiSolution(result);
+    } catch (err) {
+      setError('Failed to generate solution. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const displaySolution = problem.solution || aiSolution?.solution;
+  const displayExplanation = aiSolution?.explanation || null;
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -147,19 +168,41 @@ const AnswerModal = ({ problem, onClose }: { problem: Problem; onClose: () => vo
             </div>
           )}
           
-          <div>
-            <h4 className="text-sm font-semibold text-electric mb-2">💡 Approach & Explanation</h4>
-            <p className="text-slate-300 text-sm leading-relaxed">{getExplanation(problem.title)}</p>
-          </div>
-          
-          {problem.starterCode && (
+          {/* AI Explanation */}
+          {displayExplanation && (
             <div>
-              <h4 className="text-sm font-semibold text-electric mb-2">Solution Template</h4>
-              <pre className="bg-space-900 rounded-lg p-4 overflow-x-auto text-xs text-slate-300 font-mono">
-                {problem.starterCode}
-              </pre>
+              <h4 className="text-sm font-semibold text-electric mb-2">💡 AI Explanation</h4>
+              <p className="text-slate-300 text-sm leading-relaxed">{displayExplanation}</p>
             </div>
           )}
+          
+          {/* Solution Code */}
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 text-electric animate-spin mr-2" />
+              <span className="text-slate-400">Generating solution with AI...</span>
+            </div>
+          ) : error ? (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+              <p className="text-red-400 text-sm">{error}</p>
+              <button 
+                onClick={fetchAiSolution}
+                className="mt-2 text-xs text-electric hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          ) : displaySolution ? (
+            <div>
+              <h4 className="text-sm font-semibold text-electric mb-2 flex items-center gap-2">
+                ✅ Solution Code
+                {!problem.solution && <span className="text-xs text-cyber bg-cyber/10 px-2 py-0.5 rounded">AI Generated</span>}
+              </h4>
+              <pre className="bg-space-900 rounded-lg p-4 overflow-x-auto text-xs text-slate-300 font-mono whitespace-pre-wrap">
+                {displaySolution}
+              </pre>
+            </div>
+          ) : null}
         </div>
         
         <div className="p-4 border-t border-white/10 flex gap-3">

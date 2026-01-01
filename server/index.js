@@ -233,13 +233,25 @@ app.get('/api/problems/:id', async (req, res) => {
   }
 });
 
-// Reseed problems (for development)
+// Reseed problems (for development) - deletes all and reseeds
 app.post('/api/problems/reseed', async (req, res) => {
   try {
     await Problem.deleteMany({});
     const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
     await Problem.insertMany(allProblems);
     res.json({ message: 'Problems reseeded', count: allProblems.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET version for easy browser access
+app.get('/api/problems/reseed', async (req, res) => {
+  try {
+    await Problem.deleteMany({});
+    const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
+    await Problem.insertMany(allProblems);
+    res.json({ message: 'Problems reseeded with solutions', count: allProblems.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -22,6 +22,23 @@ export const phase1Problems = [
     // Handle division by zero
   }
 }`,
+    solution: `class Calculator {
+  add(a, b) {
+    return a + b;
+  }
+  subtract(a, b) {
+    return a - b;
+  }
+  multiply(a, b) {
+    return a * b;
+  }
+  divide(a, b) {
+    if (b === 0) {
+      throw new Error('Division by zero');
+    }
+    return a / b;
+  }
+}`,
     examples: [{ input: 'calc.add(5, 3)', expected: '8' }, { input: 'calc.divide(10, 0)', expected: 'Error: Division by zero' }]
   },
   {
@@ -48,6 +65,38 @@ class Teacher extends Person {
     // Your code here
   }
 }`,
+    solution: `class Person {
+  constructor(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+  
+  introduce() {
+    return \`Hi, I'm \${this.name}, \${this.age} years old.\`;
+  }
+}
+
+class Student extends Person {
+  constructor(name, age, grade) {
+    super(name, age);
+    this.grade = grade;
+  }
+  
+  study() {
+    return \`\${this.name} is studying.\`;
+  }
+}
+
+class Teacher extends Person {
+  constructor(name, age, subject) {
+    super(name, age);
+    this.subject = subject;
+  }
+  
+  teach() {
+    return \`\${this.name} is teaching \${this.subject}.\`;
+  }
+}`,
     examples: [{ input: 'new Student("John", 20, "A")', expected: 'Student { name: "John", age: 20, grade: "A" }' }]
   },
   {
@@ -70,6 +119,32 @@ class Teacher extends Person {
   
   getBalance() {
     // Return current balance
+  }
+}`,
+    solution: `class BankAccount {
+  #balance = 0;
+  
+  deposit(amount) {
+    if (amount <= 0) {
+      throw new Error('Deposit amount must be positive');
+    }
+    this.#balance += amount;
+    return this.#balance;
+  }
+  
+  withdraw(amount) {
+    if (amount <= 0) {
+      throw new Error('Withdrawal amount must be positive');
+    }
+    if (amount > this.#balance) {
+      throw new Error('Insufficient funds');
+    }
+    this.#balance -= amount;
+    return this.#balance;
+  }
+  
+  getBalance() {
+    return this.#balance;
   }
 }`,
     examples: [{ input: 'account.deposit(100); account.withdraw(30); account.getBalance()', expected: '70' }]
@@ -101,6 +176,43 @@ class Triangle extends Shape {
   constructor(base, height) { /* Your code */ }
   calculateArea() { /* Your code */ }
 }`,
+    solution: `class Shape {
+  calculateArea() {
+    throw new Error('Method must be implemented');
+  }
+}
+
+class Circle extends Shape {
+  constructor(radius) {
+    super();
+    this.radius = radius;
+  }
+  calculateArea() {
+    return Math.PI * this.radius * this.radius;
+  }
+}
+
+class Rectangle extends Shape {
+  constructor(width, height) {
+    super();
+    this.width = width;
+    this.height = height;
+  }
+  calculateArea() {
+    return this.width * this.height;
+  }
+}
+
+class Triangle extends Shape {
+  constructor(base, height) {
+    super();
+    this.base = base;
+    this.height = height;
+  }
+  calculateArea() {
+    return 0.5 * this.base * this.height;
+  }
+}`,
     examples: [{ input: 'new Circle(5).calculateArea()', expected: '78.54' }]
   },
   {
@@ -121,6 +233,41 @@ class VideoPlayer {
   play() { /* Your code */ }
   pause() { /* Your code */ }
   stop() { /* Your code */ }
+}`,
+    solution: `class MusicPlayer {
+  constructor() {
+    this.isPlaying = false;
+  }
+  play() {
+    this.isPlaying = true;
+    return 'Playing music...';
+  }
+  pause() {
+    this.isPlaying = false;
+    return 'Music paused';
+  }
+  stop() {
+    this.isPlaying = false;
+    return 'Music stopped';
+  }
+}
+
+class VideoPlayer {
+  constructor() {
+    this.isPlaying = false;
+  }
+  play() {
+    this.isPlaying = true;
+    return 'Playing video...';
+  }
+  pause() {
+    this.isPlaying = false;
+    return 'Video paused';
+  }
+  stop() {
+    this.isPlaying = false;
+    return 'Video stopped';
+  }
 }`,
     examples: [{ input: 'musicPlayer.play()', expected: 'Playing music...' }]
   },
@@ -144,6 +291,27 @@ class VideoPlayer {
     // Return the stored item
   }
 }`,
+    solution: `class StorageBox {
+  constructor() {
+    this.item = null;
+  }
+  
+  store(item) {
+    this.item = item;
+  }
+  
+  retrieve() {
+    return this.item;
+  }
+  
+  isEmpty() {
+    return this.item === null;
+  }
+  
+  clear() {
+    this.item = null;
+  }
+}`,
     examples: [{ input: 'box.store(42); box.retrieve()', expected: '42' }]
   },
   {
@@ -162,6 +330,25 @@ class VideoPlayer {
 
 function withdraw(balance, amount) {
   // Throw InsufficientFundsException if amount > balance
+}`,
+    solution: `class InsufficientFundsException extends Error {
+  constructor(message, balance, requested) {
+    super(message);
+    this.name = 'InsufficientFundsException';
+    this.balance = balance;
+    this.requested = requested;
+  }
+}
+
+function withdraw(balance, amount) {
+  if (amount > balance) {
+    throw new InsufficientFundsException(
+      \`Insufficient funds. Balance: \${balance}, Requested: \${amount}\`,
+      balance,
+      amount
+    );
+  }
+  return balance - amount;
 }`,
     examples: [{ input: 'withdraw(100, 150)', expected: 'InsufficientFundsException: Insufficient funds' }]
   },

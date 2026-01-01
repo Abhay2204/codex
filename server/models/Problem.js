@@ -7,6 +7,7 @@ const problemSchema = new mongoose.Schema({
   acceptanceRate: { type: Number, default: 50 },
   description: { type: String, required: true },
   starterCode: { type: String, required: true },
+  solution: { type: String, default: '' },
   visualizationType: { type: String, default: 'Array' },
   examples: [{
     input: String,

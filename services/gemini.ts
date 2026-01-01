@@ -214,3 +214,49 @@ Return ONLY a valid JSON array (no extra text) of objects with:
     }));
   }
 };
+
+export const generateSolution = async (problemTitle: string, problemDescription: string, starterCode: string, examples: { input: string; expected: string }[]): Promise<{ solution: string; explanation: string }> => {
+  try {
+    const prompt = `You are an expert programmer on CodeX platform. Generate a complete, working solution for this problem.
+
+Problem Title: "${problemTitle}"
+Problem Description: "${problemDescription}"
+
+Starter Code Template:
+\`\`\`javascript
+${starterCode}
+\`\`\`
+
+Examples:
+${examples.map((ex, i) => `Example ${i + 1}: Input: ${ex.input} → Expected Output: ${ex.expected}`).join('\n')}
+
+Requirements:
+1. Write a complete, working JavaScript solution that passes all examples
+2. Use clean, readable code with proper variable names
+3. Include brief inline comments explaining key logic
+4. The solution should be efficient (optimal or near-optimal time complexity)
+
+Return ONLY a valid JSON object with:
+{
+  "solution": "// Complete working code here...",
+  "explanation": "Brief explanation of the approach and time/space complexity"
+}`;
+
+    const response = await callOpenRouter(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const result = JSON.parse(jsonMatch[0]);
+      return {
+        solution: result.solution || '// Solution generation failed',
+        explanation: result.explanation || 'No explanation available'
+      };
+    }
+    throw new Error("Invalid response format");
+  } catch (error) {
+    console.error("Solution Generation Error:", error);
+    return {
+      solution: '// Unable to generate solution. Please try again later.',
+      explanation: 'AI service is currently unavailable.'
+    };
+  }
+};
