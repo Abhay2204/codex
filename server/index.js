@@ -21,10 +21,39 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// MongoDB connection with better error handling for serverless
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) {
+    return;
+  }
+  
+  try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not set');
+    }
+    
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    isConnected = true;
+    console.log('Connected to MongoDB');
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    throw err;
+  }
+};
+
+// Middleware to ensure DB connection
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({ error: 'Database connection failed: ' + error.message });
+  }
+});
 
 // Auth middleware
 const auth = async (req, res, next) => {
@@ -252,7 +281,10 @@ const seedProblems = async () => {
   }
 };
 
-mongoose.connection.once('open', seedProblems);
+// Seed problems on first connection (not in serverless)
+if (process.env.VERCEL !== '1') {
+  mongoose.connection.once('open', seedProblems);
+}
 
 const PORT = process.env.PORT || 5000;
 
