@@ -1,4 +1,20 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Auto-detect API URL based on environment
+const getApiUrl = () => {
+  // If explicitly set, use that
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In production (Vercel), use relative /api path
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return '/api';
+  }
+  
+  // In development, use localhost
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getApiUrl();
 
 const getToken = () => localStorage.getItem('token');
 
