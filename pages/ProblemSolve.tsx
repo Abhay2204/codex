@@ -349,21 +349,26 @@ const ProblemSolve: React.FC = () => {
       
       {/* Visualization Popup */}
       {isVisualizerOpen && (
-        <div className="fixed inset-0 bg-black z-[100] flex flex-col">
-          <div className="h-14 bg-space-800 border-b border-white/10 flex items-center justify-between px-6 shrink-0">
-            <div className="flex items-center gap-3">
-              <Play className="w-5 h-5 text-electric" />
-              <h2 className="text-lg font-bold text-white">{problem.title} - Visualization</h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-8" onClick={() => setIsVisualizerOpen(false)}>
+          <div className="bg-space-900 rounded-2xl border border-white/10 shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="h-14 bg-space-800 border-b border-white/10 flex items-center justify-between px-5 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-electric/20 flex items-center justify-center">
+                  <Play className="w-4 h-4 text-electric" />
+                </div>
+                <h2 className="text-base font-bold text-white">{problem.title}</h2>
+                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Visualization</span>
+              </div>
+              <button 
+                onClick={() => setIsVisualizerOpen(false)} 
+                className="p-2 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-slate-400 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button 
-              onClick={() => setIsVisualizerOpen(false)} 
-              className="p-2 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-slate-300 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="flex-1">
-            <Visualizer htmlContent={vizHTML} isLoading={isLoadingViz} />
+            <div className="flex-1 overflow-hidden">
+              <Visualizer htmlContent={vizHTML} isLoading={isLoadingViz} />
+            </div>
           </div>
         </div>
       )}
