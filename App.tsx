@@ -20,8 +20,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-space-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-electric animate-spin" />
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loader2 style={{ width: '32px', height: '32px', color: '#a855f7', animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
@@ -40,56 +40,95 @@ const Sidebar = () => {
 
   if (location.pathname.startsWith('/problem/')) return null;
 
+  const linkStyle = (active: boolean): React.CSSProperties => ({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: '500',
+    textDecoration: 'none',
+    transition: 'all 0.2s',
+    background: active ? 'rgba(168,85,247,0.1)' : 'transparent',
+    color: active ? '#a855f7' : '#71717a'
+  });
+
+  const sectionTitle: React.CSSProperties = {
+    padding: '8px 16px',
+    fontSize: '11px',
+    fontWeight: '600',
+    color: '#3f3f46',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    marginTop: '16px'
+  };
+
   return (
-    <div className="w-64 bg-space-900 border-r border-white/5 flex flex-col h-screen fixed left-0 top-0 z-50">
-      <div className="p-6">
-        <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-electric to-cyber tracking-tight">CodeX</div>
+    <div style={{ width: '256px', background: '#09090b', borderRight: '1px solid #27272a', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', left: 0, top: 0, zIndex: 50 }}>
+      <div style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #a855f7, #22d3ee)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Code style={{ width: '20px', height: '20px', color: '#fff' }} />
+          </div>
+          <span style={{ fontSize: '22px', fontWeight: 'bold', background: 'linear-gradient(to right, #a855f7, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CodeX</span>
+        </div>
       </div>
       
-      <nav className="flex-1 px-4 space-y-2">
-        <Link to="/dashboard" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/dashboard') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-           <HomeIcon size={18} /> Dashboard
+      <nav style={{ flex: 1, padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <Link to="/dashboard" style={linkStyle(isActive('/dashboard'))}>
+          <HomeIcon size={18} /> Dashboard
         </Link>
-        <div className="px-4 py-2 text-xs font-semibold text-slate-600 uppercase mt-4 tracking-wider">Learning</div>
-        <Link to="/roadmap" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/roadmap') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-           <Map size={18} /> DSA Roadmap
+        
+        <div style={sectionTitle}>Learning</div>
+        <Link to="/roadmap" style={linkStyle(isActive('/roadmap'))}>
+          <Map size={18} /> DSA Roadmap
         </Link>
-        <Link to="/practice" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/practice') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-           <Layers size={18} /> Practice DSA
+        <Link to="/practice" style={linkStyle(isActive('/practice'))}>
+          <Layers size={18} /> Practice DSA
         </Link>
-        <Link to="/problems" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/problems') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-           <Code size={18} /> Problem Set
+        <Link to="/problems" style={linkStyle(isActive('/problems'))}>
+          <Code size={18} /> Problem Set
         </Link>
-        <div className="px-4 py-2 text-xs font-semibold text-slate-600 uppercase mt-4 tracking-wider">Community</div>
-        <Link to="/leaderboard" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/leaderboard') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-           <Trophy size={18} /> Leaderboard
+        
+        <div style={sectionTitle}>Community</div>
+        <Link to="/leaderboard" style={linkStyle(isActive('/leaderboard'))}>
+          <Trophy size={18} /> Leaderboard
         </Link>
-        <Link to="/rooms" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/rooms') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-           <Users size={18} /> Collab Rooms
+        <Link to="/rooms" style={linkStyle(isActive('/rooms'))}>
+          <Users size={18} /> Collab Rooms
         </Link>
-        <div className="px-4 py-2 text-xs font-semibold text-slate-600 uppercase mt-4 tracking-wider">Info</div>
-        <Link to="/" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-white/5 hover:text-white`}>
-           <Globe size={18} /> Home
+        
+        <div style={sectionTitle}>Info</div>
+        <Link to="/" style={linkStyle(false)}>
+          <Globe size={18} /> Home
         </Link>
-        <Link to="/about" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/about') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
-           <BookOpen size={18} /> About & Docs
+        <Link to="/about" style={linkStyle(isActive('/about'))}>
+          <BookOpen size={18} /> About & Docs
         </Link>
       </nav>
 
-      <div className="p-4 border-t border-white/5">
-         <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-space-800 border border-white/5">
-            <div className="w-8 h-8 rounded-full bg-electric/20 flex items-center justify-center text-electric font-bold">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-               <div className="text-sm font-medium text-white truncate">{user?.name || 'User'}</div>
-               <div className="text-xs text-slate-500">{user?.xp?.toLocaleString() || 0} XP</div>
-            </div>
-            <button onClick={logout} className="p-1.5 hover:bg-space-700 rounded text-slate-400 hover:text-white transition-colors" title="Logout">
-              <LogOut size={16} />
-            </button>
-         </div>
+      <div style={{ padding: '16px', borderTop: '1px solid #27272a' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '12px', background: '#18181b', border: '1px solid #27272a' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(168,85,247,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a855f7', fontWeight: 'bold' }}>
+            {user?.name?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || 'User'}</div>
+            <div style={{ fontSize: '12px', color: '#52525b' }}>{user?.xp?.toLocaleString() || 0} XP</div>
+          </div>
+          <button onClick={logout} style={{ padding: '8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#71717a', borderRadius: '8px' }} title="Logout">
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
@@ -104,9 +143,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   }
   
   return (
-    <div className={`min-h-screen bg-space-900 ${!isWorkspace ? 'pl-64' : ''}`}>
+    <div style={{ minHeight: '100vh', background: '#000', paddingLeft: isWorkspace ? 0 : '256px' }}>
       <Sidebar />
-      <main className="h-full">
+      <main style={{ height: '100%' }}>
         {children}
       </main>
     </div>
@@ -118,8 +157,8 @@ const AppRoutes = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-space-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-electric animate-spin" />
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loader2 style={{ width: '32px', height: '32px', color: '#a855f7', animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }

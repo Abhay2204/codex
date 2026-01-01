@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, Lock, Globe, Video, Loader2, X } from 'lucide-react';
+import { Users, Plus, Video, Loader2, X } from 'lucide-react';
 import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 interface Room {
   _id: string;
@@ -15,7 +14,6 @@ interface Room {
 }
 
 const CollabRooms: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,106 +67,117 @@ const CollabRooms: React.FC = () => {
     }
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    background: '#09090b',
+    border: '1px solid #27272a',
+    borderRadius: '12px',
+    padding: '14px 16px',
+    color: '#fff',
+    fontSize: '14px',
+    outline: 'none'
+  };
+
   if (loading) {
     return (
-      <div className="p-8 max-w-7xl mx-auto min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-electric animate-spin" />
+      <div style={{ padding: '32px', maxWidth: '1280px', margin: '0 auto', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+        <Loader2 style={{ width: '32px', height: '32px', color: '#a855f7', animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto min-h-screen">
-      <div className="flex items-center justify-between mb-8">
+    <div style={{ padding: '32px', maxWidth: '1280px', margin: '0 auto', minHeight: '100vh', background: '#000' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
         <div>
-           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-             <Users className="text-cyber" /> Collaboration Rooms
-           </h1>
-           <p className="text-slate-400 mt-2">Code together in real-time with audio/video chat.</p>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#fff', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Users style={{ color: '#22d3ee' }} /> Collaboration Rooms
+          </h1>
+          <p style={{ color: '#71717a', marginTop: '8px' }}>Code together in real-time with audio/video chat.</p>
         </div>
         <button 
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-electric hover:bg-blue-600 rounded-lg text-white font-medium shadow-lg shadow-blue-500/20 transition-all"
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '12px', color: '#fff', fontWeight: '500', border: 'none', cursor: 'pointer' }}
         >
-           <Plus size={18} /> Create Room
+          <Plus size={18} /> Create Room
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         {rooms.map(room => (
-            <div key={room._id} className="glass-panel p-6 rounded-xl border border-white/5 hover:border-cyber/50 transition-all group cursor-pointer hover:-translate-y-1">
-               <div className="flex justify-between items-start mb-4">
-                  <div className={`px-2 py-1 rounded text-xs font-medium uppercase tracking-wider ${room.type === 'public' ? 'bg-neon/10 text-neon' : 'bg-red-500/10 text-red-500'}`}>
-                     {room.type}
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-500 text-sm">
-                     <Users size={14} /> {room.participants.length}/{room.maxParticipants}
-                  </div>
-               </div>
-               
-               <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyber transition-colors">{room.name}</h3>
-               <p className="text-sm text-slate-400 mb-6">Hosted by <span className="text-white">{room.hostName}</span></p>
-               
-               <div className="flex items-center justify-between mt-auto">
-                  <div className="flex gap-2">
-                     <span className="px-2 py-1 bg-space-900 rounded text-xs text-slate-300 border border-white/10 font-mono">{room.language}</span>
-                     <span className="p-1 bg-space-900 rounded text-slate-300 border border-white/10"><Video size={14} /></span>
-                  </div>
-                  <button 
-                    onClick={() => handleJoinRoom(room._id)}
-                    disabled={room.participants.length >= room.maxParticipants}
-                    className="text-sm font-medium text-white bg-space-700 hover:bg-space-600 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                     {room.participants.length >= room.maxParticipants ? 'Full' : 'Join Room'}
-                  </button>
-               </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+        {rooms.map(room => (
+          <div key={room._id} style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '16px', padding: '24px', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div style={{ padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em', background: room.type === 'public' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)', color: room.type === 'public' ? '#4ade80' : '#f87171' }}>
+                {room.type}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#52525b', fontSize: '14px' }}>
+                <Users size={14} /> {room.participants.length}/{room.maxParticipants}
+              </div>
             </div>
-         ))}
-         
-         {/* Create New Placeholder */}
-         <div 
-           onClick={() => setShowCreateModal(true)}
-           className="border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-white/5 transition-colors cursor-pointer min-h-[200px]"
-         >
-            <div className="w-12 h-12 rounded-full bg-space-800 flex items-center justify-center mb-4 text-slate-400">
-               <Plus size={24} />
+            
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>{room.name}</h3>
+            <p style={{ fontSize: '14px', color: '#71717a', marginBottom: '24px' }}>Hosted by <span style={{ color: '#fff' }}>{room.hostName}</span></p>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <span style={{ padding: '4px 10px', background: '#09090b', borderRadius: '8px', fontSize: '12px', color: '#d4d4d8', border: '1px solid #27272a', fontFamily: 'monospace' }}>{room.language}</span>
+                <span style={{ padding: '4px 8px', background: '#09090b', borderRadius: '8px', color: '#d4d4d8', border: '1px solid #27272a' }}><Video size={14} /></span>
+              </div>
+              <button 
+                onClick={() => handleJoinRoom(room._id)}
+                disabled={room.participants.length >= room.maxParticipants}
+                style={{ fontSize: '14px', fontWeight: '500', color: '#fff', background: '#27272a', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: room.participants.length >= room.maxParticipants ? 'not-allowed' : 'pointer', opacity: room.participants.length >= room.maxParticipants ? 0.5 : 1 }}
+              >
+                {room.participants.length >= room.maxParticipants ? 'Full' : 'Join Room'}
+              </button>
             </div>
-            <h3 className="text-lg font-medium text-slate-300">Create New Room</h3>
-            <p className="text-sm text-slate-500 mt-1">Start a private session or public challenge</p>
-         </div>
+          </div>
+        ))}
+        
+        {/* Create New Placeholder */}
+        <div 
+          onClick={() => setShowCreateModal(true)}
+          style={{ border: '2px dashed #27272a', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', cursor: 'pointer', minHeight: '200px' }}
+        >
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#18181b', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', color: '#71717a' }}>
+            <Plus size={24} />
+          </div>
+          <h3 style={{ fontSize: '18px', fontWeight: '500', color: '#d4d4d8' }}>Create New Room</h3>
+          <p style={{ fontSize: '14px', color: '#52525b', marginTop: '4px' }}>Start a private session or public challenge</p>
+        </div>
       </div>
 
       {/* Create Room Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-space-800 rounded-2xl border border-white/10 w-full max-w-md p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Create Room</h2>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors">
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' }}>
+          <div style={{ background: '#18181b', borderRadius: '24px', border: '1px solid #27272a', width: '100%', maxWidth: '420px', padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff' }}>Create Room</h2>
+              <button onClick={() => setShowCreateModal(false)} style={{ padding: '8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#71717a', borderRadius: '8px' }}>
                 <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleCreateRoom} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Room Name</label>
+            <form onSubmit={handleCreateRoom}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#d4d4d8', marginBottom: '8px' }}>Room Name</label>
                 <input
                   type="text"
                   value={newRoom.name}
                   onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
-                  className="w-full bg-space-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-electric/50"
+                  style={inputStyle}
                   placeholder="e.g., Interview Prep - Arrays"
                   required
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Max Participants</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#d4d4d8', marginBottom: '8px' }}>Max Participants</label>
                   <select
                     value={newRoom.maxParticipants}
                     onChange={(e) => setNewRoom({ ...newRoom, maxParticipants: parseInt(e.target.value) })}
-                    className="w-full bg-space-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-electric/50"
+                    style={inputStyle}
                   >
                     {[2, 3, 4, 5, 6, 8, 10].map(n => (
                       <option key={n} value={n}>{n} people</option>
@@ -177,11 +186,11 @@ const CollabRooms: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Room Type</label>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#d4d4d8', marginBottom: '8px' }}>Room Type</label>
                   <select
                     value={newRoom.type}
                     onChange={(e) => setNewRoom({ ...newRoom, type: e.target.value })}
-                    className="w-full bg-space-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-electric/50"
+                    style={inputStyle}
                   >
                     <option value="public">Public</option>
                     <option value="private">Private</option>
@@ -189,12 +198,12 @@ const CollabRooms: React.FC = () => {
                 </div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Language</label>
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#d4d4d8', marginBottom: '8px' }}>Language</label>
                 <select
                   value={newRoom.language}
                   onChange={(e) => setNewRoom({ ...newRoom, language: e.target.value })}
-                  className="w-full bg-space-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-electric/50"
+                  style={inputStyle}
                 >
                   {['JavaScript', 'Python', 'Java', 'C++', 'Go', 'TypeScript'].map(lang => (
                     <option key={lang} value={lang}>{lang}</option>
@@ -205,15 +214,24 @@ const CollabRooms: React.FC = () => {
               <button
                 type="submit"
                 disabled={creating}
-                className="w-full py-3.5 bg-electric hover:bg-blue-600 rounded-xl text-white font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                style={{ width: '100%', padding: '14px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '16px', fontWeight: '600', cursor: creating ? 'not-allowed' : 'pointer', opacity: creating ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                {creating ? <Loader2 className="animate-spin" size={20} /> : <Plus size={20} />}
+                {creating ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={20} />}
                 {creating ? 'Creating...' : 'Create Room'}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        input::placeholder { color: #52525b; }
+        input:focus, select:focus { border-color: #a855f7; }
+      `}</style>
     </div>
   );
 };

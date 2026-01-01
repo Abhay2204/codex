@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Search, Filter, Tag, CheckCircle2, Circle, Loader2 } from 'lucide-react';
+import { Search, Tag, CheckCircle2, Circle, Loader2 } from 'lucide-react';
 
 interface Problem {
   _id: string;
@@ -42,104 +42,108 @@ const ProblemList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-8 max-w-7xl mx-auto min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-electric animate-spin" />
+      <div style={{ padding: '32px', maxWidth: '1280px', margin: '0 auto', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+        <Loader2 style={{ width: '32px', height: '32px', color: '#a855f7', animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div style={{ padding: '32px', maxWidth: '1280px', margin: '0 auto', minHeight: '100vh', background: '#000' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-           <h1 className="text-3xl font-bold text-white">Problem Set</h1>
-           <p className="text-slate-400 mt-2 text-sm">Curated problems with AI-powered visualization.</p>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#fff' }}>Problem Set</h1>
+          <p style={{ color: '#71717a', marginTop: '8px', fontSize: '14px' }}>Curated problems with AI-powered visualization.</p>
         </div>
         
-        <div className="flex gap-4">
-           <div className="relative group">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-electric transition-colors" />
-             <input 
-               type="text" 
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               placeholder="Search problems or tags..." 
-               className="bg-space-800 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/50 w-full md:w-80 transition-all shadow-sm"
-             />
-           </div>
-           <select 
-             value={difficultyFilter}
-             onChange={(e) => setDifficultyFilter(e.target.value)}
-             className="px-4 py-2.5 bg-space-800 border border-white/10 rounded-xl text-sm text-slate-300 focus:outline-none focus:border-electric/50"
-           >
-             <option value="all">All Difficulties</option>
-             <option value="Easy">Easy</option>
-             <option value="Medium">Medium</option>
-             <option value="Hard">Hard</option>
-           </select>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ position: 'relative' }}>
+            <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#52525b' }} />
+            <input 
+              type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search problems or tags..." 
+              style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '12px', padding: '12px 16px 12px 40px', fontSize: '14px', color: '#fff', outline: 'none', width: '280px' }}
+            />
+          </div>
+          <select 
+            value={difficultyFilter}
+            onChange={(e) => setDifficultyFilter(e.target.value)}
+            style={{ padding: '12px 16px', background: '#18181b', border: '1px solid #27272a', borderRadius: '12px', fontSize: '14px', color: '#d4d4d8', outline: 'none', cursor: 'pointer' }}
+          >
+            <option value="all">All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {filteredProblems.length > 0 ? (
-            filteredProblems.map(problem => {
-              const isSolved = user?.solvedProblems?.includes(problem._id);
-              return (
-                <Link 
-                    key={problem._id} 
-                    to={`/problem/${problem._id}`}
-                    className="group glass-panel p-5 rounded-xl border border-white/5 hover:border-electric/30 transition-all hover:translate-x-1 hover:shadow-lg hover:shadow-electric/5 relative overflow-hidden"
-                >
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-electric to-cyber opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-4">
-                        <div className="mt-1">
-                            {isSolved ? (
-                                <CheckCircle2 size={20} className="text-neon" />
-                            ) : (
-                                <Circle size={20} className="text-slate-600" />
-                            )}
+          filteredProblems.map(problem => {
+            const isSolved = user?.solvedProblems?.includes(problem._id);
+            return (
+              <Link 
+                key={problem._id} 
+                to={`/problem/${problem._id}`}
+                style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '16px', padding: '20px', textDecoration: 'none', display: 'block', transition: 'all 0.2s' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                    <div style={{ marginTop: '4px' }}>
+                      {isSolved ? (
+                        <CheckCircle2 size={20} style={{ color: '#4ade80' }} />
+                      ) : (
+                        <Circle size={20} style={{ color: '#3f3f46' }} />
+                      )}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>
+                        {problem.title}
+                      </h3>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.05em', background: problem.difficulty === 'Easy' ? 'rgba(74,222,128,0.1)' : problem.difficulty === 'Medium' ? 'rgba(250,204,21,0.1)' : 'rgba(248,113,113,0.1)', color: problem.difficulty === 'Easy' ? '#4ade80' : problem.difficulty === 'Medium' ? '#facc15' : '#f87171', border: `1px solid ${problem.difficulty === 'Easy' ? 'rgba(74,222,128,0.3)' : problem.difficulty === 'Medium' ? 'rgba(250,204,21,0.3)' : 'rgba(248,113,113,0.3)'}` }}>
+                          {problem.difficulty}
+                        </span>
+                        <div style={{ height: '4px', width: '4px', borderRadius: '50%', background: '#3f3f46' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {problem.tags.map(tag => (
+                            <span key={tag} style={{ fontSize: '12px', color: '#71717a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Tag size={10} /> {tag}
+                            </span>
+                          ))}
                         </div>
-                        <div>
-                            <h3 className="text-lg font-semibold text-white group-hover:text-electric transition-colors flex items-center gap-2">
-                                {problem.title}
-                            </h3>
-                            <div className="flex flex-wrap items-center gap-3 mt-2">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wide ${
-                                    problem.difficulty === 'Easy' ? 'border-neon/30 text-neon bg-neon/5' :
-                                    problem.difficulty === 'Medium' ? 'border-yellow-500/30 text-yellow-500 bg-yellow-500/5' :
-                                    'border-red-500/30 text-red-500 bg-red-500/5'
-                                }`}>
-                                    {problem.difficulty}
-                                </span>
-                                <div className="h-1 w-1 rounded-full bg-slate-600"></div>
-                                <div className="flex gap-2">
-                                    {problem.tags.map(tag => (
-                                    <span key={tag} className="text-xs text-slate-400 flex items-center gap-1 hover:text-slate-200 transition-colors">
-                                        <Tag size={10} /> {tag}
-                                    </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="text-right hidden sm:block">
-                        <div className="text-xs font-mono text-slate-500 uppercase tracking-wider mb-1">Acceptance</div>
-                        <div className="text-lg font-bold text-white font-mono">{problem.acceptanceRate}%</div>
-                    </div>
-                    </div>
-                </Link>
-              );
-            })
+                  </div>
+                  
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '12px', fontFamily: 'monospace', color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Acceptance</div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', fontFamily: 'monospace' }}>{problem.acceptanceRate}%</div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })
         ) : (
-            <div className="text-center py-20 bg-space-800/30 rounded-xl border border-dashed border-white/10">
-                <Search size={48} className="mx-auto text-slate-600 mb-4" />
-                <h3 className="text-xl font-bold text-slate-300">No problems found</h3>
-                <p className="text-slate-500 mt-2">Try adjusting your search terms</p>
-            </div>
+          <div style={{ textAlign: 'center', padding: '80px', background: '#18181b', borderRadius: '16px', border: '2px dashed #27272a' }}>
+            <Search size={48} style={{ margin: '0 auto 16px', color: '#3f3f46' }} />
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#d4d4d8' }}>No problems found</h3>
+            <p style={{ color: '#52525b', marginTop: '8px' }}>Try adjusting your search terms</p>
+          </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        input::placeholder { color: #52525b; }
+        input:focus, select:focus { border-color: #a855f7; }
+      `}</style>
     </div>
   );
 };

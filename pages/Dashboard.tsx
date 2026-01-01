@@ -35,8 +35,8 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-electric animate-spin" />
+      <div style={{ padding: '32px', maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <Loader2 style={{ width: '32px', height: '32px', color: '#a855f7', animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
@@ -45,147 +45,158 @@ const Dashboard: React.FC = () => {
   const totalProblems = problems.length || 7;
   const progressPercent = Math.round((solvedCount / totalProblems) * 100);
 
-  // Get recommended problems (unsolved ones)
   const recommendedProblems = problems
     .filter(p => !user?.solvedProblems?.includes(p._id))
     .slice(0, 3);
 
+  const cardStyle: React.CSSProperties = {
+    background: '#18181b',
+    border: '1px solid #27272a',
+    borderRadius: '16px',
+    padding: '24px',
+    position: 'relative',
+    overflow: 'hidden'
+  };
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-       {/* Welcome Section */}
-       <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-              Welcome back, {user?.name?.split(' ')[0] || 'Developer'}.
-            </h1>
-            <p className="text-slate-400 mt-2">Ready to solve some problems today?</p>
-          </div>
-          <Link to="/problems" className="bg-electric hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium shadow-lg shadow-blue-500/20 transition-all">
-             Daily Challenge
-          </Link>
-       </div>
+    <div style={{ padding: '32px', maxWidth: '1280px', margin: '0 auto', minHeight: '100vh', background: '#000' }}>
+      {/* Welcome Section */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
+        <div>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>
+            Welcome back, {user?.name?.split(' ')[0] || 'Developer'}.
+          </h1>
+          <p style={{ color: '#71717a', fontSize: '16px' }}>Ready to solve some problems today?</p>
+        </div>
+        <Link to="/problems" style={{ padding: '12px 24px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '12px', color: '#fff', fontWeight: '500', textDecoration: 'none' }}>
+          Daily Challenge
+        </Link>
+      </div>
 
-       {/* Stats Grid */}
-       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="glass-panel p-6 rounded-xl border border-white/5 relative overflow-hidden group">
-             <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Trophy size={64} />
-             </div>
-             <div className="flex items-center gap-3 mb-2 text-slate-400">
-                <Trophy size={16} className="text-yellow-500" />
-                <span className="text-sm font-medium uppercase tracking-wider">Rank</span>
-             </div>
-             <div className="text-3xl font-bold font-mono">#{user?.rank?.toLocaleString() || '—'}</div>
-             <div className="text-xs text-neon mt-2 flex items-center gap-1">
-                <Activity size={12} /> Global Ranking
-             </div>
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', right: '16px', top: '16px', opacity: 0.1 }}>
+            <Trophy size={64} />
           </div>
-
-          <div className="glass-panel p-6 rounded-xl border border-white/5 relative overflow-hidden group">
-             <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <CheckCircle2 size={64} />
-             </div>
-             <div className="flex items-center gap-3 mb-2 text-slate-400">
-                <Target size={16} className="text-electric" />
-                <span className="text-sm font-medium uppercase tracking-wider">Solved</span>
-             </div>
-             <div className="text-3xl font-bold font-mono">{user?.solved || 0}</div>
-             <div className="w-full bg-space-900 h-1.5 rounded-full mt-3 overflow-hidden">
-                <div className="bg-electric h-full transition-all" style={{ width: `${progressPercent}%` }}></div>
-             </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#71717a' }}>
+            <Trophy size={16} style={{ color: '#facc15' }} />
+            <span style={{ fontSize: '12px', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rank</span>
           </div>
-
-          <div className="glass-panel p-6 rounded-xl border border-white/5 relative overflow-hidden group">
-             <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Flame size={64} />
-             </div>
-             <div className="flex items-center gap-3 mb-2 text-slate-400">
-                <Flame size={16} className="text-orange-500" />
-                <span className="text-sm font-medium uppercase tracking-wider">Streak</span>
-             </div>
-             <div className="text-3xl font-bold font-mono text-white">{user?.streak || 0} <span className="text-base font-normal text-slate-500">days</span></div>
-             <div className="flex gap-1 mt-3">
-                {[...Array(7)].map((_, i) => (
-                    <div key={i} className={`h-2 w-2 rounded-full ${i < (user?.streak || 0) % 7 ? 'bg-orange-500' : 'bg-space-900'}`}></div>
-                ))}
-             </div>
+          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#fff', fontFamily: 'monospace' }}>#{user?.rank?.toLocaleString() || '—'}</div>
+          <div style={{ fontSize: '12px', color: '#4ade80', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Activity size={12} /> Global Ranking
           </div>
+        </div>
 
-          <div className="glass-panel p-6 rounded-xl border border-white/5 relative overflow-hidden group">
-             <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Zap size={64} />
-             </div>
-             <div className="flex items-center gap-3 mb-2 text-slate-400">
-                <Zap size={16} className="text-cyber" />
-                <span className="text-sm font-medium uppercase tracking-wider">XP</span>
-             </div>
-             <div className="text-3xl font-bold font-mono">{user?.xp?.toLocaleString() || 0}</div>
-             <div className="text-xs text-slate-500 mt-2">
-                Level {Math.floor((user?.xp || 0) / 1000)}
-             </div>
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', right: '16px', top: '16px', opacity: 0.1 }}>
+            <CheckCircle2 size={64} />
           </div>
-       </div>
-
-       {/* Activity & Recommended */}
-       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 glass-panel rounded-xl p-6 border border-white/5">
-             <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                <Activity size={18} className="text-neon" /> Recent Activity
-             </h3>
-             <div className="space-y-6 relative before:absolute before:left-2 before:top-2 before:bottom-0 before:w-px before:bg-white/10">
-                {user?.solvedProblems && user.solvedProblems.length > 0 ? (
-                    user.solvedProblems.slice(-5).reverse().map((problemId, idx) => {
-                        const problem = problems.find(p => p._id === problemId);
-                        return (
-                            <div key={problemId} className="flex gap-4 relative pl-8">
-                                <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-space-900 border-2 border-electric z-10"></div>
-                                <div>
-                                    <div className="text-sm font-medium text-white">
-                                      Solved: {problem?.title || `Problem #${problemId.slice(-4)}`}
-                                    </div>
-                                    <div className="text-xs text-slate-500 mt-1">
-                                      {problem?.difficulty || 'Unknown'} • {problem?.tags?.join(', ') || 'DSA'}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                ) : (
-                    <div className="pl-8 text-slate-500 text-sm">No recent activity. Start solving!</div>
-                )}
-             </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#71717a' }}>
+            <Target size={16} style={{ color: '#a855f7' }} />
+            <span style={{ fontSize: '12px', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Solved</span>
           </div>
+          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#fff', fontFamily: 'monospace' }}>{user?.solved || 0}</div>
+          <div style={{ width: '100%', background: '#09090b', height: '6px', borderRadius: '9999px', marginTop: '12px', overflow: 'hidden' }}>
+            <div style={{ background: 'linear-gradient(to right, #a855f7, #22d3ee)', height: '100%', width: `${progressPercent}%`, transition: 'width 0.3s' }} />
+          </div>
+        </div>
 
-          <div className="glass-panel rounded-xl p-6 border border-white/5">
-              <h3 className="text-lg font-semibold mb-4">Recommended</h3>
-              <div className="space-y-3">
-                  {recommendedProblems.length > 0 ? (
-                    recommendedProblems.map(problem => (
-                      <Link 
-                        key={problem._id} 
-                        to={`/problem/${problem._id}`}
-                        className="block p-3 rounded-lg bg-space-800 hover:bg-space-700 transition-colors cursor-pointer border border-white/5 group"
-                      >
-                         <div className="flex justify-between items-center mb-1">
-                            <span className="font-medium text-sm group-hover:text-electric transition-colors">{problem.title}</span>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded border uppercase ${
-                              problem.difficulty === 'Easy' ? 'bg-neon/10 text-neon border-neon/20' :
-                              problem.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                              'bg-red-500/10 text-red-500 border-red-500/20'
-                            }`}>{problem.difficulty}</span>
-                         </div>
-                         <div className="text-xs text-slate-500">{problem.tags?.join(' • ')}</div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="text-slate-500 text-sm text-center py-4">
-                      All problems solved! 🎉
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', right: '16px', top: '16px', opacity: 0.1 }}>
+            <Flame size={64} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#71717a' }}>
+            <Flame size={16} style={{ color: '#f97316' }} />
+            <span style={{ fontSize: '12px', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Streak</span>
+          </div>
+          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#fff', fontFamily: 'monospace' }}>{user?.streak || 0} <span style={{ fontSize: '16px', fontWeight: 'normal', color: '#52525b' }}>days</span></div>
+          <div style={{ display: 'flex', gap: '4px', marginTop: '12px' }}>
+            {[...Array(7)].map((_, i) => (
+              <div key={i} style={{ height: '8px', width: '8px', borderRadius: '50%', background: i < (user?.streak || 0) % 7 ? '#f97316' : '#09090b' }} />
+            ))}
+          </div>
+        </div>
+
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', right: '16px', top: '16px', opacity: 0.1 }}>
+            <Zap size={64} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#71717a' }}>
+            <Zap size={16} style={{ color: '#22d3ee' }} />
+            <span style={{ fontSize: '12px', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>XP</span>
+          </div>
+          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#fff', fontFamily: 'monospace' }}>{user?.xp?.toLocaleString() || 0}</div>
+          <div style={{ fontSize: '12px', color: '#52525b', marginTop: '8px' }}>
+            Level {Math.floor((user?.xp || 0) / 1000)}
+          </div>
+        </div>
+      </div>
+
+      {/* Activity & Recommended */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
+        <div style={{ ...cardStyle, padding: '24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#fff', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Activity size={18} style={{ color: '#4ade80' }} /> Recent Activity
+          </h3>
+          <div style={{ position: 'relative', paddingLeft: '24px', borderLeft: '1px solid #27272a' }}>
+            {user?.solvedProblems && user.solvedProblems.length > 0 ? (
+              user.solvedProblems.slice(-5).reverse().map((problemId, idx) => {
+                const problem = problems.find(p => p._id === problemId);
+                return (
+                  <div key={problemId} style={{ marginBottom: '24px', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '-29px', top: '4px', width: '12px', height: '12px', borderRadius: '50%', background: '#09090b', border: '2px solid #a855f7' }} />
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>
+                      Solved: {problem?.title || `Problem #${problemId.slice(-4)}`}
                     </div>
-                  )}
-              </div>
-              <Link to="/problems" className="block text-center mt-6 text-sm text-electric hover:underline">View all problems</Link>
+                    <div style={{ fontSize: '12px', color: '#52525b', marginTop: '4px' }}>
+                      {problem?.difficulty || 'Unknown'} • {problem?.tags?.join(', ') || 'DSA'}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div style={{ color: '#52525b', fontSize: '14px' }}>No recent activity. Start solving!</div>
+            )}
           </div>
-       </div>
+        </div>
+
+        <div style={{ ...cardStyle, padding: '24px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#fff', marginBottom: '16px' }}>Recommended</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recommendedProblems.length > 0 ? (
+              recommendedProblems.map(problem => (
+                <Link 
+                  key={problem._id} 
+                  to={`/problem/${problem._id}`}
+                  style={{ display: 'block', padding: '12px', borderRadius: '12px', background: '#09090b', border: '1px solid #27272a', textDecoration: 'none' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: '500', fontSize: '14px', color: '#fff' }}>{problem.title}</span>
+                    <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '9999px', background: problem.difficulty === 'Easy' ? 'rgba(74,222,128,0.1)' : problem.difficulty === 'Medium' ? 'rgba(250,204,21,0.1)' : 'rgba(248,113,113,0.1)', color: problem.difficulty === 'Easy' ? '#4ade80' : problem.difficulty === 'Medium' ? '#facc15' : '#f87171' }}>
+                      {problem.difficulty}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#52525b' }}>{problem.tags?.join(' • ')}</div>
+                </Link>
+              ))
+            ) : (
+              <div style={{ color: '#52525b', fontSize: '14px', textAlign: 'center', padding: '16px' }}>
+                All problems solved! 🎉
+              </div>
+            )}
+          </div>
+          <Link to="/problems" style={{ display: 'block', textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#a855f7', textDecoration: 'none' }}>View all problems</Link>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

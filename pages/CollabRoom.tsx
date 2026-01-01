@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  Users, Send, ArrowLeft, Code, MessageSquare, 
-  Loader2, LogOut, Copy, Check, Play
-} from 'lucide-react';
+import { Users, Send, ArrowLeft, Code, MessageSquare, Loader2, LogOut, Copy, Check } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -52,7 +49,6 @@ const CollabRoom: React.FC = () => {
   const lastMessageTime = useRef<string | null>(null);
   const codeUpdateTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch room data
   const fetchRoom = useCallback(async () => {
     if (!id) return;
     try {
@@ -65,7 +61,6 @@ const CollabRoom: React.FC = () => {
     }
   }, [id, navigate]);
 
-  // Fetch messages (polling)
   const fetchMessages = useCallback(async () => {
     if (!id) return;
     try {
@@ -86,7 +81,6 @@ const CollabRoom: React.FC = () => {
     }
   }, [id]);
 
-  // Initial load
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -101,7 +95,6 @@ const CollabRoom: React.FC = () => {
     init();
   }, [id, fetchRoom]);
 
-  // Polling for new messages and room updates
   useEffect(() => {
     const interval = setInterval(() => {
       fetchMessages();
@@ -110,12 +103,10 @@ const CollabRoom: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchMessages, fetchRoom]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle code changes with debounce
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
     if (codeUpdateTimeout.current) {
@@ -130,7 +121,6 @@ const CollabRoom: React.FC = () => {
     }, 500);
   };
 
-  // Send message
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
@@ -147,7 +137,6 @@ const CollabRoom: React.FC = () => {
     }
   };
 
-  // Leave room
   const handleLeaveRoom = async () => {
     try {
       await api.leaveRoom(id!);
@@ -157,7 +146,6 @@ const CollabRoom: React.FC = () => {
     }
   };
 
-  // Copy room link
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -166,62 +154,52 @@ const CollabRoom: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-space-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-electric animate-spin" />
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loader2 style={{ width: '32px', height: '32px', color: '#a855f7', animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
 
   if (!room) {
     return (
-      <div className="min-h-screen bg-space-900 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-white mb-2">Room not found</h2>
-          <Link to="/rooms" className="text-electric hover:underline">Back to rooms</Link>
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>Room not found</h2>
+          <Link to="/rooms" style={{ color: '#a855f7', textDecoration: 'none' }}>Back to rooms</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-space-900 flex flex-col">
+    <div style={{ height: '100vh', background: '#000', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="h-14 bg-space-800 border-b border-white/10 flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate('/rooms')}
-            className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
-          >
+      <div style={{ height: '56px', background: '#18181b', borderBottom: '1px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={() => navigate('/rooms')} style={{ padding: '8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#71717a', borderRadius: '8px' }}>
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="font-bold text-white">{room.name}</h1>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <h1 style={{ fontWeight: 'bold', color: '#fff', fontSize: '16px' }}>{room.name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#71717a' }}>
               <span>Hosted by {room.hostName}</span>
               <span>•</span>
-              <span className="px-1.5 py-0.5 bg-space-700 rounded text-slate-300">{room.language}</span>
+              <span style={{ padding: '2px 8px', background: '#27272a', borderRadius: '4px', color: '#d4d4d8' }}>{room.language}</span>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-space-700 rounded-lg">
-            <Users size={16} className="text-cyber" />
-            <span className="text-sm text-white">{room.participants.length}/{room.maxParticipants}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: '#27272a', borderRadius: '8px' }}>
+            <Users size={16} style={{ color: '#22d3ee' }} />
+            <span style={{ fontSize: '14px', color: '#fff' }}>{room.participants.length}/{room.maxParticipants}</span>
           </div>
           
-          <button
-            onClick={handleCopyLink}
-            className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
-            title="Copy room link"
-          >
-            {copied ? <Check size={18} className="text-neon" /> : <Copy size={18} />}
+          <button onClick={handleCopyLink} style={{ padding: '8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#71717a', borderRadius: '8px' }} title="Copy room link">
+            {copied ? <Check size={18} style={{ color: '#4ade80' }} /> : <Copy size={18} />}
           </button>
           
-          <button
-            onClick={handleLeaveRoom}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-sm transition-colors"
-          >
+          <button onClick={handleLeaveRoom} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}>
             <LogOut size={16} />
             Leave
           </button>
@@ -229,47 +207,39 @@ const CollabRoom: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Code Editor */}
-        <div className="flex-1 flex flex-col border-r border-white/10">
-          <div className="h-10 bg-space-800/50 flex items-center px-4 border-b border-white/5">
-            <Code size={16} className="text-electric mr-2" />
-            <span className="text-sm text-slate-300">Shared Editor</span>
-            <span className="ml-auto text-xs text-slate-500">Changes sync automatically</span>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid #27272a' }}>
+          <div style={{ height: '40px', background: '#09090b', display: 'flex', alignItems: 'center', padding: '0 16px', borderBottom: '1px solid #27272a' }}>
+            <Code size={16} style={{ color: '#a855f7', marginRight: '8px' }} />
+            <span style={{ fontSize: '14px', color: '#d4d4d8' }}>Shared Editor</span>
+            <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#52525b' }}>Changes sync automatically</span>
           </div>
           <textarea
             value={code}
             onChange={(e) => handleCodeChange(e.target.value)}
-            className="flex-1 bg-[#1e1e1e] text-[#d4d4d4] p-4 font-mono text-sm resize-none focus:outline-none"
+            style={{ flex: 1, background: '#0a0a0a', color: '#d4d4d4', padding: '16px', fontFamily: 'monospace', fontSize: '14px', resize: 'none', border: 'none', outline: 'none' }}
             spellCheck={false}
             placeholder="// Start coding together..."
           />
         </div>
 
         {/* Sidebar - Chat & Participants */}
-        <div className="w-80 flex flex-col bg-space-800/50">
+        <div style={{ width: '320px', display: 'flex', flexDirection: 'column', background: '#09090b' }}>
           {/* Tabs */}
-          <div className="flex border-b border-white/10">
+          <div style={{ display: 'flex', borderBottom: '1px solid #27272a' }}>
             <button
               onClick={() => setActiveTab('chat')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'chat' 
-                  ? 'text-white border-b-2 border-electric' 
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: '500', background: 'transparent', border: 'none', cursor: 'pointer', color: activeTab === 'chat' ? '#fff' : '#71717a', borderBottom: activeTab === 'chat' ? '2px solid #a855f7' : '2px solid transparent' }}
             >
-              <MessageSquare size={16} className="inline mr-2" />
+              <MessageSquare size={16} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
               Chat
             </button>
             <button
               onClick={() => setActiveTab('code')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'code' 
-                  ? 'text-white border-b-2 border-electric' 
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: '500', background: 'transparent', border: 'none', cursor: 'pointer', color: activeTab === 'code' ? '#fff' : '#71717a', borderBottom: activeTab === 'code' ? '2px solid #a855f7' : '2px solid transparent' }}
             >
-              <Users size={16} className="inline mr-2" />
+              <Users size={16} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
               People ({room.participants.length})
             </button>
           </div>
@@ -277,33 +247,29 @@ const CollabRoom: React.FC = () => {
           {activeTab === 'chat' ? (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {messages.length === 0 ? (
-                  <div className="text-center text-slate-500 text-sm py-8">
+                  <div style={{ textAlign: 'center', color: '#52525b', fontSize: '14px', padding: '32px 0' }}>
                     No messages yet. Start the conversation!
                   </div>
                 ) : (
                   messages.map((msg) => (
-                    <div key={msg._id} className={`${msg.type === 'system' ? 'text-center' : ''}`}>
+                    <div key={msg._id} style={{ textAlign: msg.type === 'system' ? 'center' : 'left' }}>
                       {msg.type === 'system' ? (
-                        <span className="text-xs text-slate-500 italic">{msg.content}</span>
+                        <span style={{ fontSize: '12px', color: '#52525b', fontStyle: 'italic' }}>{msg.content}</span>
                       ) : (
-                        <div className={`${msg.userId === user?.id ? 'ml-auto' : ''} max-w-[85%]`}>
+                        <div style={{ marginLeft: msg.userId === user?.id ? 'auto' : 0, maxWidth: '85%' }}>
                           {msg.userId !== user?.id && (
-                            <div className="text-xs text-slate-400 mb-1">{msg.userName}</div>
+                            <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '4px' }}>{msg.userName}</div>
                           )}
-                          <div className={`px-3 py-2 rounded-lg text-sm ${
-                            msg.userId === user?.id 
-                              ? 'bg-electric text-white rounded-br-none' 
-                              : 'bg-space-700 text-slate-200 rounded-bl-none'
-                          }`}>
+                          <div style={{ padding: '8px 12px', borderRadius: '12px', fontSize: '14px', background: msg.userId === user?.id ? '#a855f7' : '#27272a', color: msg.userId === user?.id ? '#fff' : '#d4d4d8', borderBottomRightRadius: msg.userId === user?.id ? '4px' : '12px', borderBottomLeftRadius: msg.userId === user?.id ? '12px' : '4px' }}>
                             {msg.type === 'code' ? (
-                              <pre className="font-mono text-xs whitespace-pre-wrap">{msg.content}</pre>
+                              <pre style={{ fontFamily: 'monospace', fontSize: '12px', whiteSpace: 'pre-wrap', margin: 0 }}>{msg.content}</pre>
                             ) : (
                               msg.content
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-600 mt-1">
+                          <div style={{ fontSize: '10px', color: '#3f3f46', marginTop: '4px' }}>
                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
@@ -315,49 +281,46 @@ const CollabRoom: React.FC = () => {
               </div>
 
               {/* Message Input */}
-              <form onSubmit={handleSendMessage} className="p-3 border-t border-white/10">
-                <div className="flex gap-2">
+              <form onSubmit={handleSendMessage} style={{ padding: '12px', borderTop: '1px solid #27272a' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
-                    className="flex-1 bg-space-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-electric/50"
+                    style={{ flex: 1, background: '#18181b', border: '1px solid #27272a', borderRadius: '8px', padding: '10px 12px', fontSize: '14px', color: '#fff', outline: 'none' }}
                   />
                   <button
                     type="submit"
                     disabled={!newMessage.trim() || sending}
-                    className="p-2 bg-electric hover:bg-blue-600 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    style={{ padding: '10px', background: '#a855f7', borderRadius: '8px', color: '#fff', border: 'none', cursor: !newMessage.trim() || sending ? 'not-allowed' : 'pointer', opacity: !newMessage.trim() || sending ? 0.5 : 1 }}
                   >
-                    {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                    {sending ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={18} />}
                   </button>
                 </div>
               </form>
             </>
           ) : (
             /* Participants List */
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="space-y-2">
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {room.participants.map((participant) => (
-                  <div 
-                    key={participant._id}
-                    className="flex items-center gap-3 p-3 bg-space-700/50 rounded-lg"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-electric/20 flex items-center justify-center text-electric font-bold text-sm">
+                  <div key={participant._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: '#18181b', borderRadius: '12px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(168,85,247,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a855f7', fontWeight: 'bold', fontSize: '14px' }}>
                       {participant.name.charAt(0).toUpperCase()}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white truncate">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {participant.name}
                         {participant._id === room.host && (
-                          <span className="ml-2 text-xs text-cyber">(Host)</span>
+                          <span style={{ marginLeft: '8px', fontSize: '12px', color: '#22d3ee' }}>(Host)</span>
                         )}
                         {participant._id === user?.id && (
-                          <span className="ml-2 text-xs text-slate-500">(You)</span>
+                          <span style={{ marginLeft: '8px', fontSize: '12px', color: '#52525b' }}>(You)</span>
                         )}
                       </div>
                     </div>
-                    <div className="w-2 h-2 bg-neon rounded-full" title="Online" />
+                    <div style={{ width: '8px', height: '8px', background: '#4ade80', borderRadius: '50%' }} title="Online" />
                   </div>
                 ))}
               </div>
@@ -365,6 +328,15 @@ const CollabRoom: React.FC = () => {
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        input::placeholder { color: #52525b; }
+        input:focus { border-color: #a855f7; }
+      `}</style>
     </div>
   );
 };
