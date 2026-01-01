@@ -164,6 +164,62 @@ app.get('/api/problems', async (req, res) => {
   }
 });
 
+// Get platform stats
+app.get('/api/stats', async (req, res) => {
+  try {
+    const [problemCount, userCount, submissionCount] = await Promise.all([
+      Problem.countDocuments(),
+      User.countDocuments(),
+      Submission.countDocuments()
+    ]);
+    
+    // Get problem counts by category
+    const problems = await Problem.find().select('tags');
+    const categoryCounts = {
+      'Arrays & Strings': 0,
+      'Linked Lists': 0,
+      'Trees & BST': 0,
+      'Graphs': 0,
+      'Hash Tables': 0,
+      'Heaps': 0,
+      'Dynamic Programming': 0,
+      'Recursion & Backtracking': 0,
+      'Sorting & Searching': 0,
+      'Greedy': 0,
+      'Sliding Window': 0,
+      'Two Pointers': 0,
+      'Stacks & Queues': 0
+    };
+    
+    problems.forEach(p => {
+      p.tags.forEach(tag => {
+        if (tag.includes('Array') || tag.includes('String')) categoryCounts['Arrays & Strings']++;
+        if (tag.includes('Linked List')) categoryCounts['Linked Lists']++;
+        if (tag.includes('Tree') || tag.includes('BST')) categoryCounts['Trees & BST']++;
+        if (tag.includes('Graph')) categoryCounts['Graphs']++;
+        if (tag.includes('Hash')) categoryCounts['Hash Tables']++;
+        if (tag.includes('Heap')) categoryCounts['Heaps']++;
+        if (tag.includes('DP') || tag.includes('Dynamic')) categoryCounts['Dynamic Programming']++;
+        if (tag.includes('Recursion') || tag.includes('Backtracking')) categoryCounts['Recursion & Backtracking']++;
+        if (tag.includes('Sort') || tag.includes('Search') || tag.includes('Binary Search')) categoryCounts['Sorting & Searching']++;
+        if (tag.includes('Greedy')) categoryCounts['Greedy']++;
+        if (tag.includes('Sliding Window')) categoryCounts['Sliding Window']++;
+        if (tag.includes('Two Pointer')) categoryCounts['Two Pointers']++;
+        if (tag.includes('Stack') || tag.includes('Queue')) categoryCounts['Stacks & Queues']++;
+      });
+    });
+    
+    res.json({
+      problems: problemCount,
+      users: userCount,
+      submissions: submissionCount,
+      categories: categoryCounts
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/api/problems/:id', async (req, res) => {
   try {
     const problem = await Problem.findById(req.params.id);

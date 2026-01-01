@@ -81,6 +81,13 @@ export const api = {
     return data;
   },
 
+  async getStats() {
+    const res = await fetch(`${API_URL}/stats`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
+  },
+
   async getProblem(id: string) {
     const res = await fetch(`${API_URL}/problems/${id}`);
     const data = await res.json();

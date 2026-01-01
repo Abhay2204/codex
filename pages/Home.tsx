@@ -1,19 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Code, Users, Trophy, Terminal, Target, Brain, BarChart, TrendingUp, Zap, ChevronRight, Play } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Code, Users, Trophy, Terminal, Brain, BarChart, Zap, ChevronRight, Play, Medal } from 'lucide-react';
+import { api } from '../services/api';
+
+interface Stats {
+  problems: number;
+  users: number;
+  submissions: number;
+  categories: Record<string, number>;
+}
+
+interface LeaderboardUser {
+  _id: string;
+  name: string;
+  xp: number;
+  solved: number;
+  rank: number;
+}
 
 const codeLines = [
-  { text: 'function twoSum(nums, target) {', color: 'text-purple-400' },
-  { text: '  const map = new Map();', color: 'text-blue-400' },
-  { text: '  for (let i = 0; i < nums.length; i++) {', color: 'text-yellow-400' },
-  { text: '    const complement = target - nums[i];', color: 'text-green-400' },
-  { text: '    if (map.has(complement)) {', color: 'text-pink-400' },
-  { text: '      return [map.get(complement), i];', color: 'text-cyan-400' },
-  { text: '    }', color: 'text-pink-400' },
-  { text: '    map.set(nums[i], i);', color: 'text-orange-400' },
-  { text: '  }', color: 'text-yellow-400' },
-  { text: '}', color: 'text-purple-400' },
+  { text: 'function twoSum(nums, target) {', color: '#c084fc' },
+  { text: '  const map = new Map();', color: '#60a5fa' },
+  { text: '  for (let i = 0; i < nums.length; i++) {', color: '#facc15' },
+  { text: '    const complement = target - nums[i];', color: '#4ade80' },
+  { text: '    if (map.has(complement)) {', color: '#f472b6' },
+  { text: '      return [map.get(complement), i];', color: '#22d3ee' },
+  { text: '    }', color: '#f472b6' },
+  { text: '    map.set(nums[i], i);', color: '#fb923c' },
+  { text: '  }', color: '#facc15' },
+  { text: '}', color: '#c084fc' },
 ];
 
 const AnimatedCodeBlock: React.FC = () => {
@@ -27,34 +42,41 @@ const AnimatedCodeBlock: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative">
-      <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 via-cyan-500/20 to-pink-500/20 rounded-2xl blur-xl" />
-      <div className="relative bg-zinc-900/90 border border-zinc-700/50 rounded-xl overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 bg-zinc-800/50 border-b border-zinc-700/50">
-          <div className="flex gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/80" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-            <div className="w-3 h-3 rounded-full bg-green-500/80" />
+    <div style={{ position: 'relative' }}>
+      <div style={{
+        position: 'absolute', inset: '-16px',
+        background: 'linear-gradient(to right, rgba(168,85,247,0.2), rgba(34,211,238,0.2))',
+        borderRadius: '16px', filter: 'blur(24px)'
+      }} />
+      <div style={{
+        position: 'relative', background: 'rgba(24,24,27,0.95)',
+        border: '1px solid rgba(63,63,70,0.5)', borderRadius: '12px', overflow: 'hidden'
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px',
+          background: 'rgba(39,39,42,0.5)', borderBottom: '1px solid rgba(63,63,70,0.5)'
+        }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444' }} />
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#eab308' }} />
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#22c55e' }} />
           </div>
-          <span className="text-xs text-zinc-500 ml-2 font-mono">solution.js</span>
+          <span style={{ fontSize: '12px', color: '#71717a', marginLeft: '8px', fontFamily: 'monospace' }}>solution.js</span>
         </div>
-        <div className="p-4 font-mono text-sm">
+        <div style={{ padding: '16px', fontFamily: 'monospace', fontSize: '14px' }}>
           {codeLines.map((line, index) => (
-            <div
-              key={index}
-              className={`flex transition-opacity duration-300 ${index < visibleLines ? 'opacity-100' : 'opacity-0'}`}
-            >
-              <span className="text-zinc-600 w-6 text-right mr-4">{index + 1}</span>
-              <span className={line.color}>{line.text}</span>
+            <div key={index} style={{ display: 'flex', opacity: index < visibleLines ? 1 : 0, transition: 'opacity 0.3s' }}>
+              <span style={{ color: '#52525b', width: '24px', textAlign: 'right', marginRight: '16px' }}>{index + 1}</span>
+              <span style={{ color: line.color }}>{line.text}</span>
             </div>
           ))}
         </div>
         {visibleLines >= codeLines.length && (
-          <div className="border-t border-zinc-700/50 bg-zinc-800/30 p-4">
-            <div className="text-xs text-zinc-500 mb-2">Output:</div>
-            <div className="text-green-400 font-mono text-sm">
-              <span className="text-zinc-500">{'>'}</span> [0, 1]
-              <span className="text-xs text-zinc-500 ml-2">✓ Accepted</span>
+          <div style={{ borderTop: '1px solid rgba(63,63,70,0.5)', background: 'rgba(39,39,42,0.3)', padding: '16px' }}>
+            <div style={{ fontSize: '12px', color: '#71717a', marginBottom: '8px' }}>Output:</div>
+            <div style={{ color: '#4ade80', fontFamily: 'monospace', fontSize: '14px' }}>
+              <span style={{ color: '#71717a' }}>{'>'}</span> [0, 1]
+              <span style={{ fontSize: '12px', color: '#71717a', marginLeft: '8px' }}>✓ Accepted</span>
             </div>
           </div>
         )}
@@ -64,270 +86,243 @@ const AnimatedCodeBlock: React.FC = () => {
 };
 
 const Home: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-cyan-900/20" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      </div>
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsData, leaderboardData] = await Promise.all([
+          api.getStats(),
+          api.getLeaderboard()
+        ]);
+        setStats(statsData);
+        setLeaderboard(leaderboardData.slice(0, 5));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#000', color: '#fff' }}>
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-xl border-b border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-xl font-bold text-white flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
-              <Code className="w-5 h-5 text-white" />
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+        background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(39,39,42,0.5)'
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '20px', fontWeight: 'bold' }}>
+            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #a855f7, #22d3ee)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Code style={{ width: '20px', height: '20px', color: '#fff' }} />
             </div>
             CodeX
           </div>
-          <div className="flex items-center gap-6">
-            <Link to="/roadmap" className="text-zinc-400 hover:text-white transition-colors text-sm">Roadmap</Link>
-            <Link to="/login" className="text-zinc-400 hover:text-white transition-colors text-sm">Login</Link>
-            <Link to="/register" className="px-5 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-lg text-sm font-medium flex items-center gap-2">
-              Get Started <ChevronRight className="w-4 h-4" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <Link to="/roadmap" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>Roadmap</Link>
+            <Link to="/login" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>Login</Link>
+            <Link to="/register" style={{ padding: '8px 20px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Get Started <ChevronRight style={{ width: '16px', height: '16px' }} />
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 min-h-screen flex items-center">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section style={{ paddingTop: '128px', paddingBottom: '80px', padding: '128px 24px 80px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full mb-6">
-                <Zap className="w-4 h-4 text-purple-400" />
-                <span className="text-sm text-zinc-300">AI-Powered Learning Platform</span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: '9999px', marginBottom: '24px' }}>
+                <Zap style={{ width: '16px', height: '16px', color: '#c084fc' }} />
+                <span style={{ fontSize: '14px', color: '#d4d4d8' }}>AI-Powered Learning Platform</span>
               </div>
 
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                <span className="text-white">Master </span>
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">Algorithms</span>
+              <h1 style={{ fontSize: '64px', fontWeight: 'bold', marginBottom: '24px', lineHeight: 1.1 }}>
+                <span style={{ color: '#fff' }}>Master </span>
+                <span style={{ background: 'linear-gradient(to right, #c084fc, #f472b6, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Algorithms</span>
                 <br />
-                <span className="text-white">Like a Pro</span>
+                <span style={{ color: '#fff' }}>Like a Pro</span>
               </h1>
               
-              <p className="text-lg text-zinc-400 mb-8 max-w-lg">
-                500+ curated problems, real-time visualizations, AI hints, and collaborative coding rooms.
+              <p style={{ fontSize: '18px', color: '#a1a1aa', marginBottom: '32px', maxWidth: '500px', lineHeight: 1.6 }}>
+                Curated problems, real-time visualizations, AI hints, and collaborative coding rooms.
               </p>
 
-              <div className="flex flex-wrap gap-4 mb-8">
-                <Link to="/register" className="px-8 py-4 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl font-medium flex items-center gap-2">
-                  <Play className="w-5 h-5" /> Start Learning Free
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
+                <Link to="/register" style={{ padding: '16px 32px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: '#fff' }}>
+                  <Play style={{ width: '20px', height: '20px' }} /> Start Learning Free
                 </Link>
-                <Link to="/problems" className="px-8 py-4 border border-zinc-700 hover:border-zinc-500 rounded-xl font-medium flex items-center gap-2">
-                  <Terminal className="w-5 h-5" /> Browse Problems
+                <Link to="/login" style={{ padding: '16px 32px', border: '1px solid #3f3f46', borderRadius: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: '#fff', background: 'transparent' }}>
+                  <Terminal style={{ width: '20px', height: '20px' }} /> Browse Problems
                 </Link>
-              </div>
-
-              <div className="flex items-center gap-6 text-sm text-zinc-500">
-                <span className="flex items-center gap-2"><Zap className="w-4 h-4 text-yellow-500" /> No credit card</span>
-                <span className="flex items-center gap-2"><Trophy className="w-4 h-4 text-purple-500" /> 50K+ users</span>
               </div>
             </div>
 
-            <div className="hidden lg:block">
+            <div>
               <AnimatedCodeBlock />
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 p-8 bg-zinc-900/50 border border-zinc-800/50 rounded-2xl">
+          {/* Real Stats */}
+          <div style={{ marginTop: '80px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
             {[
-              { value: '500+', label: 'Problems' },
-              { value: '50K+', label: 'Users' },
-              { value: '1M+', label: 'Solutions' },
-              { value: '95%', label: 'Success Rate' }
+              { value: stats?.problems || 0, label: 'Problems', icon: Code },
+              { value: stats?.users || 0, label: 'Users', icon: Users },
+              { value: stats?.submissions || 0, label: 'Submissions', icon: BarChart },
+              { value: leaderboard.length > 0 ? leaderboard[0].xp : 0, label: 'Top XP', icon: Trophy }
             ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">{stat.value}</div>
-                <div className="text-sm text-zinc-500">{stat.label}</div>
+              <div key={stat.label} style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
+                <stat.icon style={{ width: '32px', height: '32px', color: '#a855f7', margin: '0 auto 12px' }} />
+                <div style={{ fontSize: '32px', fontWeight: 'bold', background: 'linear-gradient(to right, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  {loading ? '...' : formatNumber(stat.value)}
+                </div>
+                <div style={{ fontSize: '14px', color: '#71717a' }}>{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Everything You Need to <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">Succeed</span>
-            </h2>
-            <p className="text-zinc-400">A complete platform to take you from beginner to interview-ready</p>
+      {/* Features Section */}
+      <section style={{ padding: '80px 24px', background: '#09090b' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>Why Choose CodeX?</h2>
+            <p style={{ fontSize: '18px', color: '#a1a1aa', maxWidth: '600px', margin: '0 auto' }}>Everything you need to master algorithms and ace your interviews</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
             {[
-              { icon: Terminal, title: 'Real-Time Visualization', desc: 'Watch algorithms execute step-by-step', color: 'from-purple-500 to-pink-500' },
-              { icon: Brain, title: 'AI-Powered Hints', desc: 'Get progressive hints when stuck', color: 'from-cyan-500 to-blue-500' },
-              { icon: Users, title: 'Collaborative Rooms', desc: 'Code together in real-time', color: 'from-green-500 to-emerald-500' },
-              { icon: Trophy, title: 'Global Leaderboard', desc: 'Compete with developers worldwide', color: 'from-yellow-500 to-orange-500' },
-              { icon: BarChart, title: 'Progress Analytics', desc: 'Track your learning journey', color: 'from-pink-500 to-rose-500' },
-              { icon: Code, title: 'Multi-Language', desc: 'JS, Python, Java, C++, Go', color: 'from-indigo-500 to-purple-500' }
+              { icon: Brain, title: 'AI-Powered Hints', desc: 'Get intelligent hints without spoiling the solution', color: '#c084fc' },
+              { icon: Code, title: 'Real-Time Visualizer', desc: 'Watch algorithms come to life with step-by-step animations', color: '#22d3ee' },
+              { icon: Users, title: 'Collab Rooms', desc: 'Code together with friends in real-time sessions', color: '#4ade80' },
+              { icon: Trophy, title: 'Leaderboard', desc: 'Compete with others and track your progress', color: '#facc15' },
+              { icon: Terminal, title: 'Multi-Language', desc: 'Practice in JavaScript, Python, Java, and more', color: '#f472b6' },
+              { icon: BarChart, title: 'Progress Tracking', desc: 'Detailed analytics on your learning journey', color: '#fb923c' }
             ].map((feature) => (
-              <div key={feature.title} className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6 hover:border-zinc-700 transition-colors">
-                <div className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4`}>
-                  <feature.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-zinc-400 text-sm">{feature.desc}</p>
+              <div key={feature.title} style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '16px', padding: '32px' }}>
+                <feature.icon style={{ width: '40px', height: '40px', color: feature.color, marginBottom: '16px' }} />
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>{feature.title}</h3>
+                <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.6 }}>{feature.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Problem Categories */}
-      <section className="py-20 px-6 bg-zinc-900/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">Problem Categories</h2>
-            <p className="text-zinc-400">Comprehensive coverage of all essential DSA topics</p>
+      {/* Problem Categories Section */}
+      <section style={{ padding: '80px 24px', background: '#000' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>Problem Categories</h2>
+            <p style={{ fontSize: '18px', color: '#a1a1aa' }}>Master every topic with our curated problem sets</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6">
-              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-purple-500" />
-                Data Structures
-              </h3>
-              <div className="space-y-3">
-                {[
-                  { name: 'Arrays & Strings', count: 85 },
-                  { name: 'Linked Lists', count: 42 },
-                  { name: 'Trees & BST', count: 67 },
-                  { name: 'Graphs', count: 54 },
-                  { name: 'Hash Tables', count: 45 },
-                  { name: 'Heaps', count: 32 }
-                ].map((topic) => (
-                  <div key={topic.name} className="flex items-center justify-between py-2 border-b border-zinc-800/50 last:border-0">
-                    <span className="text-zinc-300">{topic.name}</span>
-                    <span className="text-zinc-500 text-sm">{topic.count} problems</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-6">
-              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-cyan-500" />
-                Algorithms
-              </h3>
-              <div className="space-y-3">
-                {[
-                  { name: 'Dynamic Programming', count: 72 },
-                  { name: 'Recursion & Backtracking', count: 56 },
-                  { name: 'Sorting & Searching', count: 48 },
-                  { name: 'Greedy', count: 41 },
-                  { name: 'Sliding Window', count: 33 },
-                  { name: 'Two Pointers', count: 37 }
-                ].map((topic) => (
-                  <div key={topic.name} className="flex items-center justify-between py-2 border-b border-zinc-800/50 last:border-0">
-                    <span className="text-zinc-300">{topic.name}</span>
-                    <span className="text-zinc-500 text-sm">{topic.count} problems</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            {stats?.categories && Object.entries(stats.categories).map(([category, count]) => (
+              <Link to="/practice" key={category} style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '12px', padding: '20px', textDecoration: 'none', transition: 'all 0.2s' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>{category}</div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#a855f7' }}>{count as number}</div>
+                <div style={{ fontSize: '12px', color: '#71717a' }}>problems</div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">How It Works</h2>
-            <p className="text-zinc-400">Your path from beginner to interview-ready</p>
+      {/* How It Works Section */}
+      <section style={{ padding: '80px 24px', background: '#09090b' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>How It Works</h2>
+            <p style={{ fontSize: '18px', color: '#a1a1aa' }}>Start your journey in 4 simple steps</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
             {[
-              { step: '01', icon: Target, title: 'Choose Problem', desc: 'Browse by topic or difficulty' },
-              { step: '02', icon: Code, title: 'Code & Visualize', desc: 'Watch your algorithm run' },
-              { step: '03', icon: Brain, title: 'Get AI Help', desc: 'Progressive hints when stuck' },
-              { step: '04', icon: TrendingUp, title: 'Track Progress', desc: 'Earn XP and level up' }
+              { step: '01', title: 'Create Account', desc: 'Sign up for free and set up your profile' },
+              { step: '02', title: 'Choose Topic', desc: 'Pick from arrays, trees, graphs, and more' },
+              { step: '03', title: 'Solve Problems', desc: 'Practice with our curated problem sets' },
+              { step: '04', title: 'Track Progress', desc: 'Monitor your growth and climb the ranks' }
             ].map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="text-6xl font-bold text-zinc-900 mb-4">{item.step}</div>
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-zinc-400 text-sm">{item.desc}</p>
+              <div key={item.step} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '64px', fontWeight: 'bold', color: '#a855f7', marginBottom: '16px', opacity: 0.8 }}>{item.step}</div>
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>{item.title}</h3>
+                <p style={{ fontSize: '14px', color: '#a1a1aa', lineHeight: 1.6 }}>{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Success Stats */}
-      <section className="py-20 px-6 bg-zinc-900/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">Interview Success</h2>
-            <p className="text-zinc-400">Our users land offers at top tech companies</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {[
-              { value: '95%', label: 'Success Rate', sub: 'Users with 100+ problems' },
-              { value: '$150K', label: 'Avg Salary', sub: 'FAANG offers' },
-              { value: '3 mo', label: 'Prep Time', sub: 'Beginner to ready' }
-            ].map((stat) => (
-              <div key={stat.label} className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-8 text-center">
-                <div className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent mb-2">{stat.value}</div>
-                <div className="text-white font-medium mb-1">{stat.label}</div>
-                <div className="text-xs text-zinc-500">{stat.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl p-8 text-center">
-            <h3 className="text-lg font-semibold text-white mb-6">Companies Our Users Work At</h3>
-            <div className="flex flex-wrap justify-center gap-8 text-zinc-400">
-              {['Google', 'Meta', 'Amazon', 'Apple', 'Microsoft', 'Netflix', 'Uber', 'Airbnb'].map(company => (
-                <span key={company} className="hover:text-white transition-colors">{company}</span>
-              ))}
+      {/* Leaderboard Section */}
+      <section style={{ padding: '80px 24px', background: '#000' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <div>
+              <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>Top Performers</h2>
+              <p style={{ fontSize: '18px', color: '#a1a1aa' }}>See who's leading the pack</p>
             </div>
+            <Link to="/leaderboard" style={{ padding: '12px 24px', border: '1px solid #3f3f46', borderRadius: '8px', color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              View All <ChevronRight style={{ width: '16px', height: '16px' }} />
+            </Link>
+          </div>
+          <div style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '16px', overflow: 'hidden' }}>
+            {leaderboard.length > 0 ? leaderboard.map((user, index) => (
+              <div key={user._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: index < leaderboard.length - 1 ? '1px solid #27272a' : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: index === 0 ? 'linear-gradient(135deg, #facc15, #fb923c)' : index === 1 ? 'linear-gradient(135deg, #94a3b8, #64748b)' : index === 2 ? 'linear-gradient(135deg, #f97316, #ea580c)' : '#27272a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff' }}>
+                    {index + 1}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#fff' }}>{user.name}</div>
+                    <div style={{ fontSize: '12px', color: '#71717a' }}>{user.solved} problems solved</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Medal style={{ width: '20px', height: '20px', color: '#facc15' }} />
+                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff' }}>{formatNumber(user.xp)} XP</span>
+                </div>
+              </div>
+            )) : (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#71717a' }}>
+                {loading ? 'Loading leaderboard...' : 'No users yet. Be the first!'}
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl font-bold mb-6">
-            <span className="text-white">Ready to </span>
-            <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">Level Up?</span>
-          </h2>
-          <p className="text-xl text-zinc-400 mb-8">Join 50,000+ developers mastering algorithms</p>
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <Link to="/register" className="px-8 py-4 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl font-medium flex items-center gap-2">
-              Create Free Account <ChevronRight className="w-5 h-5" />
-            </Link>
-            <Link to="/problems" className="px-8 py-4 border border-zinc-700 hover:border-zinc-500 rounded-xl font-medium">
-              Explore Problems
-            </Link>
-          </div>
-          <p className="text-sm text-zinc-600">No credit card required • 500+ problems • AI-powered hints</p>
+      {/* CTA Section */}
+      <section style={{ padding: '80px 24px', background: 'linear-gradient(to bottom, #09090b, #000)' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '48px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>Ready to Level Up?</h2>
+          <p style={{ fontSize: '18px', color: '#a1a1aa', marginBottom: '32px' }}>Join thousands of developers mastering algorithms every day</p>
+          <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '16px 40px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '12px', fontWeight: '600', fontSize: '18px', textDecoration: 'none', color: '#fff' }}>
+            Get Started Free <ChevronRight style={{ width: '20px', height: '20px' }} />
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-zinc-800/50">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-xl font-bold text-white flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
-              <Code className="w-5 h-5 text-white" />
+      <footer style={{ padding: '40px 24px', background: '#000', borderTop: '1px solid #27272a' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #a855f7, #22d3ee)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Code style={{ width: '20px', height: '20px', color: '#fff' }} />
             </div>
-            CodeX
+            <span style={{ fontWeight: 'bold', color: '#fff' }}>CodeX</span>
           </div>
-          <div className="text-zinc-600 text-sm">© 2024 CodeX Platform</div>
+          <div style={{ fontSize: '14px', color: '#71717a' }}>© 2025 CodeX. All rights reserved.</div>
         </div>
       </footer>
     </div>
