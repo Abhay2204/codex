@@ -13,7 +13,7 @@ import CollabRooms from './pages/CollabRooms';
 import CollabRoom from './pages/CollabRoom';
 import About from './pages/About';
 import DSARoadmap from './pages/DSARoadmap';
-import { Home as HomeIcon, Code, Trophy, Users, BookOpen, Layers, LogOut, Loader2, Map } from 'lucide-react';
+import { Home as HomeIcon, Code, Trophy, Users, BookOpen, Layers, LogOut, Loader2, Map, Globe } from 'lucide-react';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -68,6 +68,9 @@ const Sidebar = () => {
            <Users size={18} /> Collab Rooms
         </Link>
         <div className="px-4 py-2 text-xs font-semibold text-slate-600 uppercase mt-4 tracking-wider">Info</div>
+        <Link to="/" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-white/5 hover:text-white`}>
+           <Globe size={18} /> Home
+        </Link>
         <Link to="/about" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/about') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
            <BookOpen size={18} /> About & Docs
         </Link>
