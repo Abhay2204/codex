@@ -5,7 +5,7 @@ A next-generation coding platform with AI-powered visualization, real-time colla
 ## Live Demo
 🚀 [https://codex-platform-seven.vercel.app](https://codex-platform-seven.vercel.app)
 
-**Note:** First deployment may take a moment to wake up the serverless functions.
+**Note:** First load may take a moment to initialize serverless functions.
 
 ## Features
 
