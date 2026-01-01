@@ -14,7 +14,8 @@ import CollabRoom from './pages/CollabRoom';
 import About from './pages/About';
 import DSARoadmap from './pages/DSARoadmap';
 import SystemDesign from './pages/SystemDesign';
-import { Home as HomeIcon, Code, Trophy, Users, BookOpen, Layers, LogOut, Loader2, Map, Globe, Server } from 'lucide-react';
+import SQLMastery from './pages/SQLMastery';
+import { Home as HomeIcon, Code, Trophy, Users, BookOpen, Layers, LogOut, Loader2, Globe } from 'lucide-react';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -82,12 +83,6 @@ const Sidebar = () => {
         </Link>
         
         <div style={sectionTitle}>Learning</div>
-        <Link to="/roadmap" style={linkStyle(isActive('/roadmap'))}>
-          <Map size={18} /> DSA Roadmap
-        </Link>
-        <Link to="/system-design" style={linkStyle(isActive('/system-design'))}>
-          <Server size={18} /> System Design
-        </Link>
         <Link to="/practice" style={linkStyle(isActive('/practice'))}>
           <Layers size={18} /> Practice DSA
         </Link>
@@ -140,7 +135,7 @@ const Sidebar = () => {
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isWorkspace = location.pathname.startsWith('/problem/');
-  const isPublicPage = ['/', '/login', '/register', '/roadmap', '/system-design'].includes(location.pathname);
+  const isPublicPage = ['/', '/login', '/register', '/roadmap', '/system-design', '/sql'].includes(location.pathname);
   
   if (isPublicPage) {
     return <>{children}</>;
@@ -176,6 +171,7 @@ const AppRoutes = () => {
         <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
         <Route path="/roadmap" element={<DSARoadmap />} />
         <Route path="/system-design" element={<SystemDesign />} />
+        <Route path="/sql" element={<SQLMastery />} />
         
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

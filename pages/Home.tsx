@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Code, Users, Trophy, Terminal, Brain, BarChart, Zap, ChevronRight, Play, Medal } from 'lucide-react';
+import { Code, Users, Trophy, Terminal, Brain, BarChart, Zap, ChevronRight, Play, Medal, Monitor, Menu, X } from 'lucide-react';
 import { api } from '../services/api';
 
 interface Stats {
@@ -89,6 +89,7 @@ const Home: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,6 +119,28 @@ const Home: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff' }}>
+      {/* Mobile Responsive Styles - Only affects screens below 768px */}
+      <style>{`
+        @media (min-width: 768px) {
+          #mobile-notice { display: none !important; }
+          #mobile-menu-btn { display: none !important; }
+          #mobile-menu-dropdown { display: none !important; }
+        }
+        @media (max-width: 767px) {
+          #nav-links { display: none !important; }
+          #mobile-menu-btn { display: block !important; }
+          #hero-grid { grid-template-columns: 1fr !important; }
+          #hero-title { font-size: 36px !important; }
+          #hero-code { display: none !important; }
+          #stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          #features-grid { grid-template-columns: 1fr !important; }
+          #categories-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          #steps-grid { grid-template-columns: 1fr !important; }
+          #leaderboard-header { flex-direction: column !important; gap: 16px !important; align-items: flex-start !important; }
+          #cta-title { font-size: 32px !important; }
+          #footer-content { flex-direction: column !important; gap: 16px !important; text-align: center !important; }
+        }
+      `}</style>
       {/* Navigation */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
@@ -131,28 +154,98 @@ const Home: React.FC = () => {
             </div>
             CodeX
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          
+          {/* Desktop Navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }} id="nav-links">
             <Link to="/roadmap" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>DSA Roadmap</Link>
             <Link to="/system-design" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>System Design</Link>
+            <Link to="/sql" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>SQL</Link>
             <Link to="/login" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>Login</Link>
             <Link to="/register" style={{ padding: '8px 20px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
               Get Started <ChevronRight style={{ width: '16px', height: '16px' }} />
             </Link>
           </div>
+          
+          {/* Mobile Menu Button */}
+          <button 
+            id="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{ 
+              display: 'none', 
+              background: 'transparent', 
+              border: 'none', 
+              color: '#fff', 
+              cursor: 'pointer',
+              padding: '8px'
+            }}
+          >
+            {mobileMenuOpen ? <X style={{ width: '24px', height: '24px' }} /> : <Menu style={{ width: '24px', height: '24px' }} />}
+          </button>
         </div>
+        
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div id="mobile-menu-dropdown" style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            background: 'rgba(0,0,0,0.95)',
+            borderBottom: '1px solid rgba(39,39,42,0.5)',
+            padding: '16px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <Link to="/roadmap" onClick={() => setMobileMenuOpen(false)} style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '16px', padding: '8px 0' }}>DSA Roadmap</Link>
+            <Link to="/system-design" onClick={() => setMobileMenuOpen(false)} style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '16px', padding: '8px 0' }}>System Design</Link>
+            <Link to="/sql" onClick={() => setMobileMenuOpen(false)} style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '16px', padding: '8px 0' }}>SQL</Link>
+            <Link to="/login" onClick={() => setMobileMenuOpen(false)} style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '16px', padding: '8px 0' }}>Login</Link>
+            <Link to="/register" onClick={() => setMobileMenuOpen(false)} style={{ padding: '12px 20px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '8px', fontSize: '16px', fontWeight: 500, textDecoration: 'none', color: '#fff', textAlign: 'center' }}>
+              Get Started
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
       <section style={{ paddingTop: '128px', paddingBottom: '80px', padding: '128px 24px 80px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+          {/* Mobile Notice Banner */}
+          <div id="mobile-notice" style={{ 
+            marginBottom: '24px', 
+            padding: '16px', 
+            background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(34,211,238,0.15))', 
+            border: '1px solid rgba(168,85,247,0.3)', 
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <Monitor style={{ width: '24px', height: '24px', color: '#a855f7', flexShrink: 0 }} />
+            <div>
+              <p style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>
+                🖥️ Best Experience on Desktop
+              </p>
+              <p style={{ fontSize: '12px', color: '#a1a1aa', lineHeight: '1.4' }}>
+                CodeX is optimized for desktop computers. For the best coding experience with our code editor, algorithm visualizer, and collaboration features, please switch to a PC or laptop.
+              </p>
+            </div>
+          </div>
+          <style>{`
+            @media (min-width: 768px) {
+              #mobile-notice { display: none !important; }
+            }
+          `}</style>
+          
+          <div id="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
             <div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)', borderRadius: '9999px', marginBottom: '24px' }}>
                 <Zap style={{ width: '16px', height: '16px', color: '#c084fc' }} />
                 <span style={{ fontSize: '14px', color: '#d4d4d8' }}>AI-Powered Learning Platform</span>
               </div>
 
-              <h1 style={{ fontSize: '64px', fontWeight: 'bold', marginBottom: '24px', lineHeight: 1.1 }}>
+              <h1 id="hero-title" style={{ fontSize: '64px', fontWeight: 'bold', marginBottom: '24px', lineHeight: 1.1 }}>
                 <span style={{ color: '#fff' }}>Master </span>
                 <span style={{ background: 'linear-gradient(to right, #c084fc, #f472b6, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Algorithms</span>
                 <br />
@@ -173,13 +266,13 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            <div>
+            <div id="hero-code">
               <AnimatedCodeBlock />
             </div>
           </div>
 
           {/* Real Stats */}
-          <div style={{ marginTop: '80px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+          <div id="stats-grid" style={{ marginTop: '80px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
             {[
               { value: stats?.problems || 0, label: 'Problems', icon: Code },
               { value: stats?.users || 0, label: 'Users', icon: Users },
@@ -205,7 +298,7 @@ const Home: React.FC = () => {
             <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>Why Choose CodeX?</h2>
             <p style={{ fontSize: '18px', color: '#a1a1aa', maxWidth: '600px', margin: '0 auto' }}>Everything you need to master algorithms and ace your interviews</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+          <div id="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
             {[
               { icon: Brain, title: 'AI-Powered Hints', desc: 'Get intelligent hints without spoiling the solution', color: '#c084fc' },
               { icon: Code, title: 'Real-Time Visualizer', desc: 'Watch algorithms come to life with step-by-step animations', color: '#22d3ee' },
@@ -231,7 +324,7 @@ const Home: React.FC = () => {
             <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>Problem Categories</h2>
             <p style={{ fontSize: '18px', color: '#a1a1aa' }}>Master every topic with our curated problem sets</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          <div id="categories-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {stats?.categories && Object.entries(stats.categories).map(([category, count]) => (
               <Link to="/practice" key={category} style={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '12px', padding: '20px', textDecoration: 'none', transition: 'all 0.2s' }}>
                 <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>{category}</div>
@@ -250,7 +343,7 @@ const Home: React.FC = () => {
             <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>How It Works</h2>
             <p style={{ fontSize: '18px', color: '#a1a1aa' }}>Start your journey in 4 simple steps</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+          <div id="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
             {[
               { step: '01', title: 'Create Account', desc: 'Sign up for free and set up your profile' },
               { step: '02', title: 'Choose Topic', desc: 'Pick from arrays, trees, graphs, and more' },
@@ -270,7 +363,7 @@ const Home: React.FC = () => {
       {/* Leaderboard Section */}
       <section style={{ padding: '80px 24px', background: '#000' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <div id="leaderboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
             <div>
               <h2 style={{ fontSize: '40px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>Top Performers</h2>
               <p style={{ fontSize: '18px', color: '#a1a1aa' }}>See who's leading the pack</p>
@@ -308,7 +401,7 @@ const Home: React.FC = () => {
       {/* CTA Section */}
       <section style={{ padding: '80px 24px', background: 'linear-gradient(to bottom, #09090b, #000)' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '48px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>Ready to Level Up?</h2>
+          <h2 id="cta-title" style={{ fontSize: '48px', fontWeight: 'bold', color: '#fff', marginBottom: '16px' }}>Ready to Level Up?</h2>
           <p style={{ fontSize: '18px', color: '#a1a1aa', marginBottom: '32px' }}>Join thousands of developers mastering algorithms every day</p>
           <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '16px 40px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '12px', fontWeight: '600', fontSize: '18px', textDecoration: 'none', color: '#fff' }}>
             Get Started Free <ChevronRight style={{ width: '20px', height: '20px' }} />
@@ -318,7 +411,7 @@ const Home: React.FC = () => {
 
       {/* Footer */}
       <footer style={{ padding: '40px 24px', background: '#000', borderTop: '1px solid #27272a' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div id="footer-content" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #a855f7, #22d3ee)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Code style={{ width: '20px', height: '20px', color: '#fff' }} />
