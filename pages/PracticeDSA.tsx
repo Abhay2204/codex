@@ -161,8 +161,8 @@ const AnswerModal = ({ problem, onClose }: { problem: Problem; onClose: () => vo
               <h4 className="text-sm font-semibold text-electric mb-2">Examples</h4>
               {problem.examples.map((ex, i) => (
                 <div key={i} className="bg-space-900 rounded-lg p-3 mb-2 font-mono text-xs">
-                  <div className="text-slate-400">Input: <span className="text-white">{ex.input}</span></div>
-                  <div className="text-slate-400">Output: <span className="text-neon">{ex.expected}</span></div>
+                  <div className="text-slate-400">Input: <span className="text-white">{typeof ex.input === 'object' ? JSON.stringify(ex.input) : String(ex.input)}</span></div>
+                  <div className="text-slate-400">Output: <span className="text-neon">{typeof ex.expected === 'object' ? JSON.stringify(ex.expected) : String(ex.expected)}</span></div>
                 </div>
               ))}
             </div>

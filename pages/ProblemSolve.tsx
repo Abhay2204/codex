@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Play, RotateCcw, SkipBack, SkipForward, ChevronLeft, ChevronRight, Loader2, Terminal, Bot, ChevronDown, X, Copy, Check } from 'lucide-react';
+import { Play, RotateCcw, SkipBack, SkipForward, ChevronLeft, ChevronRight, Loader2, Terminal, ChevronDown, X, Copy, Check, Maximize2, Minimize2, FlaskConical, Eye } from 'lucide-react';
 import Visualizer from '../components/Visualizer';
-import AiChat from '../components/AiChat';
 import TestResults from '../components/TestResults';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { LANGUAGE_TEMPLATES } from '../constants';
 import { VisualizationFrame, TestResult, SupportedLanguage, ExecutionResult } from '../types';
-import { generateVisualizationTrace, runCodeAgainstTestCases, executeCode } from '../services/gemini';
+import { generateVisualizationTrace, runCodeAgainstTestCases, executeCode, generateSolution } from '../services/gemini';
 import confetti from 'canvas-confetti';
 
 interface Problem {
@@ -34,7 +33,7 @@ const ProblemSolve: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'desc'>('desc');
   const [bottomTab, setBottomTab] = useState<'visualizer' | 'tests' | 'console'>('visualizer');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [isVisualizerFullscreen, setIsVisualizerFullscreen] = useState(false);
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingTrace, setIsLoadingTrace] = useState(false);
@@ -277,6 +276,10 @@ const ProblemSolve: React.FC = () => {
            <button onClick={handleRunCode} disabled={isExecuting || isSubmitting} className="px-4 py-1.5 rounded-lg bg-space-700 hover:bg-space-600 text-xs font-semibold tracking-wide transition-colors border border-white/5 flex items-center gap-2 disabled:opacity-50 uppercase">
              {isExecuting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Terminal className="w-3 h-3" />} Run
            </button>
+
+           <button onClick={handleRunTests} disabled={isRunningTests || isSubmitting} className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs font-semibold tracking-wide transition-colors flex items-center gap-2 disabled:opacity-50 uppercase text-white">
+             {isRunningTests ? <Loader2 className="w-3 h-3 animate-spin" /> : <FlaskConical className="w-3 h-3" />} Test
+           </button>
            
            <button onClick={handleRunVisualization} disabled={isLoadingTrace} className="hidden md:flex px-4 py-1.5 rounded-lg bg-electric hover:bg-blue-600 text-xs font-bold tracking-wide shadow-lg shadow-blue-500/20 transition-all items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed uppercase text-white">
              {isLoadingTrace ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />} 
@@ -310,8 +313,8 @@ const ProblemSolve: React.FC = () => {
                             <div key={idx} className="bg-space-800 rounded-lg p-4 border border-white/5">
                                 <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Example {idx + 1}</h4>
                                 <div className="font-mono text-xs space-y-2">
-                                    <div className="flex gap-2"><span className="text-slate-500 select-none w-12">Input:</span><span className="text-slate-200">{ex.input}</span></div>
-                                    <div className="flex gap-2"><span className="text-slate-500 select-none w-12">Output:</span><span className="text-white font-semibold">{ex.expected}</span></div>
+                                    <div className="flex gap-2"><span className="text-slate-500 select-none w-12">Input:</span><span className="text-slate-200">{typeof ex.input === 'object' ? JSON.stringify(ex.input) : String(ex.input)}</span></div>
+                                    <div className="flex gap-2"><span className="text-slate-500 select-none w-12">Output:</span><span className="text-white font-semibold">{typeof ex.expected === 'object' ? JSON.stringify(ex.expected) : String(ex.expected)}</span></div>
                                 </div>
                             </div>
                          ))}
@@ -326,7 +329,7 @@ const ProblemSolve: React.FC = () => {
                         onClick={() => setShowAnswerModal(true)}
                         className="mt-6 w-full py-3 bg-neon/10 hover:bg-neon/20 border border-neon/30 text-neon rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2"
                       >
-                        <Bot size={16} /> Show Answer
+                        <Eye size={16} /> Show Answer
                       </button>
                   </div>
                </div>
@@ -378,6 +381,12 @@ const ProblemSolve: React.FC = () => {
                               <button onClick={() => setCurrentStep(Math.min(frames.length - 1, currentStep + 1))} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors"><SkipForward className="w-3 h-3" /></button>
                               <div className="w-px h-4 bg-white/10 mx-1"></div>
                               <button onClick={handleReset} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors" title="Reset"><RotateCcw className="w-3 h-3" /></button>
+                              <button onClick={() => setIsVisualizerFullscreen(true)} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors" title="Fullscreen"><Maximize2 className="w-3 h-3" /></button>
+                          </div>
+                      )}
+                      {bottomTab === 'visualizer' && !frames && (
+                          <div className="ml-auto flex items-center gap-1 pr-2">
+                              <button onClick={() => setIsVisualizerFullscreen(true)} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors" title="Fullscreen"><Maximize2 className="w-3 h-3" /></button>
                           </div>
                       )}
                   </div>
@@ -411,19 +420,38 @@ const ProblemSolve: React.FC = () => {
         </div>
       </div>
       
-      <div className="absolute bottom-6 right-6 z-50 flex flex-col items-end gap-4 pointer-events-none">
-          {isAiChatOpen && (
-              <div className="w-[380px] h-[500px] bg-space-800 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto animate-in fade-in slide-in-from-bottom-10 backdrop-blur-xl">
-                  <AiChat currentCode={code} problemDesc={problem.description} executionError={executionResult?.stderr || testResults?.find(t => t.error)?.error || null} onClose={() => setIsAiChatOpen(false)} />
-              </div>
-          )}
-          
-          {!isAiChatOpen && (
-              <button onClick={() => setIsAiChatOpen(true)} className="pointer-events-auto w-14 h-14 bg-gradient-to-r from-electric to-cyber rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,102,255,0.5)] hover:shadow-[0_0_30px_rgba(0,102,255,0.7)] transition-all hover:scale-105 group">
-                  <Bot className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
+      {/* Fullscreen Visualizer Modal */}
+      {isVisualizerFullscreen && (
+        <div className="fixed inset-0 bg-space-900 z-[100] flex flex-col">
+          <div className="h-14 bg-space-800 border-b border-white/10 flex items-center justify-between px-6 shrink-0">
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-bold text-white">Visualization - {problem.title}</h2>
+              {frames && (
+                <span className="text-xs text-slate-400">Step {currentStep + 1} of {frames.length}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {frames && (
+                <>
+                  <button onClick={() => setCurrentStep(Math.max(0, currentStep - 1))} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors"><SkipBack className="w-4 h-4" /></button>
+                  <button onClick={() => setIsPlaying(!isPlaying)} className="p-2 hover:bg-space-700 rounded-lg text-electric transition-colors">
+                    {isPlaying ? <div className="w-4 h-4 border-l-2 border-r-2 border-current mx-0.5" /> : <Play className="w-4 h-4 fill-current" />}
+                  </button>
+                  <button onClick={() => setCurrentStep(Math.min(frames.length - 1, currentStep + 1))} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors"><SkipForward className="w-4 h-4" /></button>
+                  <button onClick={handleReset} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors" title="Reset"><RotateCcw className="w-4 h-4" /></button>
+                  <div className="w-px h-6 bg-white/10 mx-2"></div>
+                </>
+              )}
+              <button onClick={() => setIsVisualizerFullscreen(false)} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors" title="Exit Fullscreen">
+                <Minimize2 className="w-4 h-4" />
               </button>
-          )}
-      </div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <Visualizer type={problem.visualizationType as any} frame={frames ? frames[currentStep] : null} isPlaying={isPlaying} />
+          </div>
+        </div>
+      )}
 
       {/* Show Answer Modal */}
       {showAnswerModal && (
@@ -433,37 +461,53 @@ const ProblemSolve: React.FC = () => {
   );
 };
 
-// Answer Modal Component
-const AnswerModal = ({ problem, onClose }: { problem: { title: string; starterCode: string; solution: string; difficulty: string }; onClose: () => void }) => {
+// Answer Modal Component with AI-generated solutions via OpenRouter
+const AnswerModal = ({ problem, onClose }: { problem: Problem; onClose: () => void }) => {
   const [copied, setCopied] = useState(false);
+  const [aiSolution, setAiSolution] = useState<{ solution: string; explanation: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use solution if available, otherwise fall back to starterCode
-  const solutionCode = problem.solution || problem.starterCode;
+  // Fetch AI solution if no solution in DB
+  useEffect(() => {
+    if (!problem.solution && !aiSolution && !loading) {
+      fetchAiSolution();
+    }
+  }, [problem]);
+
+  const fetchAiSolution = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await generateSolution(
+        problem.title,
+        problem.description || '',
+        problem.starterCode || '',
+        problem.examples || []
+      );
+      setAiSolution(result);
+    } catch (err) {
+      setError('Failed to generate solution. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const displaySolution = problem.solution || aiSolution?.solution || '';
+  const displayExplanation = aiSolution?.explanation || null;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(solutionCode);
+    navigator.clipboard.writeText(displaySolution);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  // Extract complexity from solution comments if present
-  const getComplexity = () => {
-    const timeMatch = solutionCode.match(/Time\s*Complexity[:\s]*O\([^)]+\)/i);
-    const spaceMatch = solutionCode.match(/Space\s*Complexity[:\s]*O\([^)]+\)/i);
-    return {
-      time: timeMatch ? timeMatch[0].split(':').pop()?.trim() || 'O(n)' : 'O(n)',
-      space: spaceMatch ? spaceMatch[0].split(':').pop()?.trim() || 'O(1)' : 'O(1)'
-    };
-  };
-
-  const complexity = getComplexity();
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-space-800 rounded-2xl border border-white/10 max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Bot className="text-neon" size={24} />
+            <Eye className="text-neon" size={24} />
             <div>
               <h2 className="text-xl font-bold text-white">{problem.title}</h2>
               <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -479,47 +523,54 @@ const AnswerModal = ({ problem, onClose }: { problem: { title: string; starterCo
         </div>
         
         <div className="p-6 overflow-y-auto max-h-[60vh] space-y-6">
-          <div className="bg-neon/5 border border-neon/20 rounded-lg p-4">
-            <h3 className="text-neon font-bold mb-2 text-sm flex items-center gap-2">💡 Approach</h3>
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Analyze the problem constraints and identify the optimal data structure. Consider time/space trade-offs. 
-              Start with a brute force approach, then optimize using appropriate techniques.
-            </p>
-          </div>
+          {/* AI Explanation */}
+          {displayExplanation && (
+            <div className="bg-neon/5 border border-neon/20 rounded-lg p-4">
+              <h3 className="text-neon font-bold mb-2 text-sm flex items-center gap-2">💡 AI Explanation</h3>
+              <p className="text-slate-300 text-sm leading-relaxed">{displayExplanation}</p>
+            </div>
+          )}
 
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-bold flex items-center gap-2">
-                Solution Code
-                {problem.solution ? (
-                  <span className="text-xs px-2 py-0.5 bg-neon/20 text-neon rounded-full">Complete Solution</span>
-                ) : (
-                  <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full">Starter Template</span>
-                )}
-              </h3>
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 text-electric animate-spin mr-3" />
+              <span className="text-slate-400">Generating AI solution...</span>
+            </div>
+          ) : error ? (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+              <p className="text-red-400 text-sm">{error}</p>
               <button 
-                onClick={handleCopy}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors"
+                onClick={fetchAiSolution}
+                className="mt-2 text-xs text-electric hover:underline"
               >
-                {copied ? <Check size={14} className="text-neon" /> : <Copy size={14} />}
-                {copied ? 'Copied!' : 'Copy Code'}
+                Try again
               </button>
             </div>
-            <pre className="bg-[#1e1e1e] rounded-lg p-4 overflow-x-auto text-sm text-[#d4d4d4] font-mono border border-white/5 max-h-[300px] overflow-y-auto">
-              <code>{solutionCode}</code>
-            </pre>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-space-900 rounded-lg p-4 border border-white/5">
-              <h4 className="text-xs text-slate-500 uppercase mb-2">Time Complexity</h4>
-              <code className="text-electric font-mono">{complexity.time}</code>
+          ) : displaySolution ? (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-white font-bold flex items-center gap-2">
+                  Solution Code
+                  {!problem.solution && aiSolution ? (
+                    <span className="text-xs px-2 py-0.5 bg-cyber/20 text-cyber rounded-full">AI Generated</span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 bg-neon/20 text-neon rounded-full">Complete Solution</span>
+                  )}
+                </h3>
+                <button 
+                  onClick={handleCopy}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors"
+                >
+                  {copied ? <Check size={14} className="text-neon" /> : <Copy size={14} />}
+                  {copied ? 'Copied!' : 'Copy Code'}
+                </button>
+              </div>
+              <pre className="bg-[#1e1e1e] rounded-lg p-4 overflow-x-auto text-sm text-[#d4d4d4] font-mono border border-white/5 max-h-[300px] overflow-y-auto whitespace-pre-wrap">
+                <code>{displaySolution}</code>
+              </pre>
             </div>
-            <div className="bg-space-900 rounded-lg p-4 border border-white/5">
-              <h4 className="text-xs text-slate-500 uppercase mb-2">Space Complexity</h4>
-              <code className="text-electric font-mono">{complexity.space}</code>
-            </div>
-          </div>
+          ) : null}
 
           <div>
             <h3 className="text-white font-bold mb-3">Key Insights</h3>
