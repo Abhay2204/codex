@@ -2,6 +2,9 @@
 
 A next-generation coding platform with AI-powered visualization, real-time collaboration, and MongoDB backend.
 
+## Live Demo
+🚀 [https://codex-platform-seven.vercel.app](https://codex-platform-seven.vercel.app)
+
 ## Features
 
 - 🔐 User authentication (register/login with JWT)
