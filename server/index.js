@@ -135,9 +135,28 @@ const updateRanks = async () => {
 setInterval(updateRanks, 15 * 60 * 1000);
 updateRanks(); // Initial update
 
-// PROBLEM ROUTES
+// Seed problems if empty
+const seedProblems = async () => {
+  try {
+    const count = await Problem.countDocuments();
+    if (count === 0) {
+      const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
+      await Problem.insertMany(allProblems);
+      console.log('Problems seeded: ' + allProblems.length + ' problems (Phase 1-4)');
+      return allProblems.length;
+    }
+    return count;
+  } catch (error) {
+    console.error('Error seeding problems:', error);
+    return 0;
+  }
+};
+
+// PROBLEM ROUTES - Auto-seed on first request
 app.get('/api/problems', async (req, res) => {
   try {
+    // Auto-seed if empty
+    await seedProblems();
     const problems = await Problem.find().select('-__v');
     res.json(problems);
   } catch (error) {
@@ -159,9 +178,24 @@ app.get('/api/problems/:id', async (req, res) => {
 app.post('/api/problems/reseed', async (req, res) => {
   try {
     await Problem.deleteMany({});
-    await seedProblems();
-    const problems = await Problem.find();
-    res.json({ message: 'Problems reseeded', count: problems.length });
+    const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
+    await Problem.insertMany(allProblems);
+    res.json({ message: 'Problems reseeded', count: allProblems.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Seed problems if empty (GET endpoint for easy browser access)
+app.get('/api/problems/seed', async (req, res) => {
+  try {
+    const count = await Problem.countDocuments();
+    if (count > 0) {
+      return res.json({ message: 'Problems already exist', count });
+    }
+    const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
+    await Problem.insertMany(allProblems);
+    res.json({ message: 'Problems seeded successfully', count: allProblems.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -357,26 +391,6 @@ app.post('/api/rooms/:id/messages', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
-
-// Seed problems if empty
-const seedProblems = async () => {
-  try {
-    const count = await Problem.countDocuments();
-    if (count === 0) {
-      const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
-      await Problem.insertMany(allProblems);
-      console.log('Problems seeded: ' + allProblems.length + ' problems (Phase 1-4)');
-    }
-  } catch (error) {
-    console.error('Error seeding problems:', error);
-  }
-};
-
-// Seed problems when MongoDB connects
-mongoose.connection.once('open', () => {
-  console.log('MongoDB connected, checking if seeding needed...');
-  seedProblems();
 });
 
 const PORT = process.env.PORT || 5000;
