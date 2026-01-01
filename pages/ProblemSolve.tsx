@@ -18,6 +18,7 @@ interface Problem {
   tags: string[];
   description: string;
   starterCode: string;
+  solution: string;
   visualizationType: string;
   examples: { input: string; expected: string; isHidden?: boolean }[];
 }
@@ -433,14 +434,29 @@ const ProblemSolve: React.FC = () => {
 };
 
 // Answer Modal Component
-const AnswerModal = ({ problem, onClose }: { problem: { title: string; starterCode: string; difficulty: string }; onClose: () => void }) => {
+const AnswerModal = ({ problem, onClose }: { problem: { title: string; starterCode: string; solution: string; difficulty: string }; onClose: () => void }) => {
   const [copied, setCopied] = useState(false);
 
+  // Use solution if available, otherwise fall back to starterCode
+  const solutionCode = problem.solution || problem.starterCode;
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(problem.starterCode);
+    navigator.clipboard.writeText(solutionCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Extract complexity from solution comments if present
+  const getComplexity = () => {
+    const timeMatch = solutionCode.match(/Time\s*Complexity[:\s]*O\([^)]+\)/i);
+    const spaceMatch = solutionCode.match(/Space\s*Complexity[:\s]*O\([^)]+\)/i);
+    return {
+      time: timeMatch ? timeMatch[0].split(':').pop()?.trim() || 'O(n)' : 'O(n)',
+      space: spaceMatch ? spaceMatch[0].split(':').pop()?.trim() || 'O(1)' : 'O(1)'
+    };
+  };
+
+  const complexity = getComplexity();
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={onClose}>
@@ -473,7 +489,14 @@ const AnswerModal = ({ problem, onClose }: { problem: { title: string; starterCo
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-bold">Solution Code</h3>
+              <h3 className="text-white font-bold flex items-center gap-2">
+                Solution Code
+                {problem.solution ? (
+                  <span className="text-xs px-2 py-0.5 bg-neon/20 text-neon rounded-full">Complete Solution</span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full">Starter Template</span>
+                )}
+              </h3>
               <button 
                 onClick={handleCopy}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg transition-colors"
@@ -483,18 +506,18 @@ const AnswerModal = ({ problem, onClose }: { problem: { title: string; starterCo
               </button>
             </div>
             <pre className="bg-[#1e1e1e] rounded-lg p-4 overflow-x-auto text-sm text-[#d4d4d4] font-mono border border-white/5 max-h-[300px] overflow-y-auto">
-              {problem.starterCode}
+              <code>{solutionCode}</code>
             </pre>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-space-900 rounded-lg p-4 border border-white/5">
               <h4 className="text-xs text-slate-500 uppercase mb-2">Time Complexity</h4>
-              <code className="text-electric font-mono">O(n)</code>
+              <code className="text-electric font-mono">{complexity.time}</code>
             </div>
             <div className="bg-space-900 rounded-lg p-4 border border-white/5">
               <h4 className="text-xs text-slate-500 uppercase mb-2">Space Complexity</h4>
-              <code className="text-electric font-mono">O(1)</code>
+              <code className="text-electric font-mono">{complexity.space}</code>
             </div>
           </div>
 

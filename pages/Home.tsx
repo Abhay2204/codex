@@ -132,7 +132,8 @@ const Home: React.FC = () => {
             CodeX
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            <Link to="/roadmap" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>Roadmap</Link>
+            <Link to="/roadmap" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>DSA Roadmap</Link>
+            <Link to="/system-design" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>System Design</Link>
             <Link to="/login" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '14px' }}>Login</Link>
             <Link to="/register" style={{ padding: '8px 20px', background: 'linear-gradient(to right, #a855f7, #22d3ee)', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
               Get Started <ChevronRight style={{ width: '16px', height: '16px' }} />
