@@ -7,6 +7,7 @@ import User from './models/User.js';
 import Problem from './models/Problem.js';
 import Room from './models/Room.js';
 import Submission from './models/Submission.js';
+import Message from './models/Message.js';
 import { phase1Problems, phase2Problems, phase3Problems, phase4Problems } from './seedProblems.js';
 
 // Only load .env file if not on Vercel (Vercel uses dashboard env vars)
@@ -234,6 +235,16 @@ app.post('/api/rooms/:id/join', auth, async (req, res) => {
     if (!room.participants.includes(req.userId)) {
       room.participants.push(req.userId);
       await room.save();
+      
+      // Add system message
+      const user = await User.findById(req.userId);
+      await Message.create({
+        roomId: room._id,
+        userId: req.userId,
+        userName: user.name,
+        content: `${user.name} joined the room`,
+        type: 'system'
+      });
     }
     res.json(room);
   } catch (error) {
@@ -241,20 +252,132 @@ app.post('/api/rooms/:id/join', auth, async (req, res) => {
   }
 });
 
+// Get single room with details
+app.get('/api/rooms/:id', auth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id)
+      .populate('participants', 'name email');
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Leave room
+app.post('/api/rooms/:id/leave', auth, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+    
+    room.participants = room.participants.filter(p => p.toString() !== req.userId);
+    
+    // If host leaves, close the room or transfer ownership
+    if (room.host.toString() === req.userId) {
+      if (room.participants.length > 0) {
+        room.host = room.participants[0];
+        const newHost = await User.findById(room.participants[0]);
+        room.hostName = newHost.name;
+      } else {
+        room.isActive = false;
+      }
+    }
+    
+    await room.save();
+    
+    // Add system message
+    const user = await User.findById(req.userId);
+    await Message.create({
+      roomId: room._id,
+      userId: req.userId,
+      userName: user.name,
+      content: `${user.name} left the room`,
+      type: 'system'
+    });
+    
+    res.json({ message: 'Left room successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update shared code
+app.put('/api/rooms/:id/code', auth, async (req, res) => {
+  try {
+    const { code } = req.body;
+    const room = await Room.findByIdAndUpdate(
+      req.params.id,
+      { sharedCode: code, lastActivity: new Date() },
+      { new: true }
+    );
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+    res.json({ sharedCode: room.sharedCode });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// CHAT/MESSAGE ROUTES
+app.get('/api/rooms/:id/messages', auth, async (req, res) => {
+  try {
+    const { since } = req.query;
+    const query = { roomId: req.params.id };
+    
+    // If 'since' timestamp provided, only get newer messages (for polling)
+    if (since) {
+      query.createdAt = { $gt: new Date(since) };
+    }
+    
+    const messages = await Message.find(query)
+      .sort({ createdAt: 1 })
+      .limit(100);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/rooms/:id/messages', auth, async (req, res) => {
+  try {
+    const { content, type = 'chat' } = req.body;
+    const user = await User.findById(req.userId);
+    
+    const message = await Message.create({
+      roomId: req.params.id,
+      userId: req.userId,
+      userName: user.name,
+      content,
+      type
+    });
+    
+    // Update room last activity
+    await Room.findByIdAndUpdate(req.params.id, { lastActivity: new Date() });
+    
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Seed problems if empty
 const seedProblems = async () => {
-  const count = await Problem.countDocuments();
-  if (count === 0) {
-    const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
-    await Problem.insertMany(allProblems);
-    console.log('Problems seeded: ' + allProblems.length + ' problems (Phase 1-4)');
+  try {
+    const count = await Problem.countDocuments();
+    if (count === 0) {
+      const allProblems = [...phase1Problems, ...phase2Problems, ...phase3Problems, ...phase4Problems];
+      await Problem.insertMany(allProblems);
+      console.log('Problems seeded: ' + allProblems.length + ' problems (Phase 1-4)');
+    }
+  } catch (error) {
+    console.error('Error seeding problems:', error);
   }
 };
 
-// Seed problems on first connection (not in serverless)
-if (process.env.VERCEL !== '1') {
-  mongoose.connection.once('open', seedProblems);
-}
+// Seed problems when MongoDB connects
+mongoose.connection.once('open', () => {
+  console.log('MongoDB connected, checking if seeding needed...');
+  seedProblems();
+});
 
 const PORT = process.env.PORT || 5000;
 

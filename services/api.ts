@@ -134,5 +134,54 @@ export const api = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
     return data;
+  },
+
+  async getRoom(roomId: string) {
+    const res = await fetch(`${API_URL}/rooms/${roomId}`, { headers: headers() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
+  },
+
+  async leaveRoom(roomId: string) {
+    const res = await fetch(`${API_URL}/rooms/${roomId}/leave`, {
+      method: 'POST',
+      headers: headers()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
+  },
+
+  async updateRoomCode(roomId: string, code: string) {
+    const res = await fetch(`${API_URL}/rooms/${roomId}/code`, {
+      method: 'PUT',
+      headers: headers(),
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
+  },
+
+  async getRoomMessages(roomId: string, since?: string) {
+    const url = since 
+      ? `${API_URL}/rooms/${roomId}/messages?since=${encodeURIComponent(since)}`
+      : `${API_URL}/rooms/${roomId}/messages`;
+    const res = await fetch(url, { headers: headers() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
+  },
+
+  async sendRoomMessage(roomId: string, content: string, type: 'chat' | 'code' | 'system' = 'chat') {
+    const res = await fetch(`${API_URL}/rooms/${roomId}/messages`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ content, type })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    return data;
   }
 };

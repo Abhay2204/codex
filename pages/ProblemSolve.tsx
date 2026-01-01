@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Play, RotateCcw, SkipBack, SkipForward, ChevronLeft, ChevronRight, Loader2, Terminal, Sparkles, ChevronDown, X, Copy, Check } from 'lucide-react';
+import { Play, RotateCcw, SkipBack, SkipForward, ChevronLeft, ChevronRight, Loader2, Terminal, Bot, ChevronDown, X, Copy, Check } from 'lucide-react';
 import Visualizer from '../components/Visualizer';
 import AiChat from '../components/AiChat';
 import TestResults from '../components/TestResults';
@@ -325,7 +325,7 @@ const ProblemSolve: React.FC = () => {
                         onClick={() => setShowAnswerModal(true)}
                         className="mt-6 w-full py-3 bg-neon/10 hover:bg-neon/20 border border-neon/30 text-neon rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2"
                       >
-                        <Sparkles size={16} /> Show Answer
+                        <Bot size={16} /> Show Answer
                       </button>
                   </div>
                </div>
@@ -419,7 +419,7 @@ const ProblemSolve: React.FC = () => {
           
           {!isAiChatOpen && (
               <button onClick={() => setIsAiChatOpen(true)} className="pointer-events-auto w-14 h-14 bg-gradient-to-r from-electric to-cyber rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,102,255,0.5)] hover:shadow-[0_0_30px_rgba(0,102,255,0.7)] transition-all hover:scale-105 group">
-                  <Sparkles className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
+                  <Bot className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
               </button>
           )}
       </div>
@@ -447,7 +447,7 @@ const AnswerModal = ({ problem, onClose }: { problem: { title: string; starterCo
       <div className="bg-space-800 rounded-2xl border border-white/10 max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Sparkles className="text-neon" size={24} />
+            <Bot className="text-neon" size={24} />
             <div>
               <h2 className="text-xl font-bold text-white">{problem.title}</h2>
               <span className={`text-xs px-2 py-0.5 rounded-full ${

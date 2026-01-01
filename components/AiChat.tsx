@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Message } from '../types';
 import { getProgressiveHint, getCodeAnalysis, getErrorExplanation } from '../services/gemini';
-import { Sparkles, Send, X, AlertTriangle } from 'lucide-react';
+import { Bot, Send, X, AlertTriangle } from 'lucide-react';
 
 interface AiChatProps {
   currentCode: string;
@@ -81,7 +81,7 @@ const AiChat: React.FC<AiChatProps> = ({ currentCode, problemDesc, executionErro
     <div className="flex flex-col h-full bg-space-800">
       <div className="p-4 border-b border-white/10 flex items-center justify-between bg-space-900/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-cyber" />
+          <Bot className="w-5 h-5 text-cyber" />
           <span className="font-semibold text-white">Gemini Assistant</span>
         </div>
         {onClose && (

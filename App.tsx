@@ -10,8 +10,10 @@ import ProblemSolve from './pages/ProblemSolve';
 import PracticeDSA from './pages/PracticeDSA';
 import Leaderboard from './pages/Leaderboard';
 import CollabRooms from './pages/CollabRooms';
+import CollabRoom from './pages/CollabRoom';
 import About from './pages/About';
-import { Home as HomeIcon, Code, Trophy, Users, BookOpen, Layers, LogOut, Loader2 } from 'lucide-react';
+import DSARoadmap from './pages/DSARoadmap';
+import { Home as HomeIcon, Code, Trophy, Users, BookOpen, Layers, LogOut, Loader2, Map } from 'lucide-react';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -49,6 +51,9 @@ const Sidebar = () => {
            <HomeIcon size={18} /> Dashboard
         </Link>
         <div className="px-4 py-2 text-xs font-semibold text-slate-600 uppercase mt-4 tracking-wider">Learning</div>
+        <Link to="/roadmap" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/roadmap') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+           <Map size={18} /> DSA Roadmap
+        </Link>
         <Link to="/practice" className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive('/practice') ? 'bg-electric/10 text-electric' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
            <Layers size={18} /> Practice DSA
         </Link>
@@ -89,7 +94,7 @@ const Sidebar = () => {
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isWorkspace = location.pathname.startsWith('/problem/');
-  const isPublicPage = ['/', '/login', '/register'].includes(location.pathname);
+  const isPublicPage = ['/', '/login', '/register', '/roadmap'].includes(location.pathname);
   
   if (isPublicPage) {
     return <>{children}</>;
@@ -123,6 +128,7 @@ const AppRoutes = () => {
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Home />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
+        <Route path="/roadmap" element={<DSARoadmap />} />
         
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -131,6 +137,7 @@ const AppRoutes = () => {
         <Route path="/practice" element={<ProtectedRoute><PracticeDSA /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
         <Route path="/rooms" element={<ProtectedRoute><CollabRooms /></ProtectedRoute>} />
+        <Route path="/room/:id" element={<ProtectedRoute><CollabRoom /></ProtectedRoute>} />
         <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
       </Routes>
     </LayoutWrapper>

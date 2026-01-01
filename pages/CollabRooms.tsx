@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Plus, Lock, Globe, Video, Loader2, X } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +16,7 @@ interface Room {
 
 const CollabRooms: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -47,10 +49,10 @@ const CollabRooms: React.FC = () => {
     
     setCreating(true);
     try {
-      await api.createRoom(newRoom);
+      const room = await api.createRoom(newRoom);
       setShowCreateModal(false);
       setNewRoom({ name: '', maxParticipants: 5, type: 'public', language: 'JavaScript' });
-      fetchRooms();
+      navigate(`/room/${room._id}`);
     } catch (error) {
       console.error('Error creating room:', error);
     } finally {
@@ -61,7 +63,7 @@ const CollabRooms: React.FC = () => {
   const handleJoinRoom = async (roomId: string) => {
     try {
       await api.joinRoom(roomId);
-      fetchRooms();
+      navigate(`/room/${roomId}`);
     } catch (error: any) {
       alert(error.message || 'Failed to join room');
     }

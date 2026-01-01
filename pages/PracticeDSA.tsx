@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   Layers, GitBranch, Box, Network, Cpu, PlayCircle, Loader2, 
   ChevronRight, CheckCircle2, Lock, Zap, Search, Binary, 
-  Hash, RotateCcw, TreeDeciduous, Route, Sparkles, Target,
+  Hash, RotateCcw, TreeDeciduous, Route, Target,
   BookOpen, Code, Database, Triangle, X, Eye, ExternalLink
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -90,7 +90,7 @@ const phases: Phase[] = [
       { id: "sliding-window", title: "Sliding Window", icon: Layers, color: "text-blue-400", description: "Fixed and variable window techniques.", tags: ["Sliding Window"] },
       { id: "two-pointers", title: "Two Pointers", icon: Target, color: "text-purple-400", description: "Opposite direction and same direction patterns.", tags: ["Two Pointers"] },
       { id: "intervals", title: "Intervals & Merging", icon: GitBranch, color: "text-orange-400", description: "Merge intervals, meeting rooms, scheduling.", tags: ["Intervals"] },
-      { id: "greedy", title: "Greedy Algorithms", icon: Sparkles, color: "text-yellow-400", description: "Local optimal choices for global solutions.", tags: ["Greedy"] },
+      { id: "greedy", title: "Greedy Algorithms", icon: Zap, color: "text-yellow-400", description: "Local optimal choices for global solutions.", tags: ["Greedy"] },
       { id: "bit-manipulation", title: "Bit Manipulation", icon: Binary, color: "text-cyan-400", description: "XOR tricks, bit masking, and binary operations.", tags: ["Bit Manipulation"] }
     ]
   }
@@ -528,7 +528,7 @@ const PracticeDSA: React.FC = () => {
       {/* Tips Section */}
       <div className="mt-8 glass-panel rounded-xl p-6 border border-white/10">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Sparkles className="text-yellow-500" /> Pro Tips for Success
+          <Zap className="text-yellow-500" /> Pro Tips for Success
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="flex items-start gap-3">
