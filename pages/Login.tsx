@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Loader2, AlertCircle, ArrowLeft, Code } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -26,58 +26,74 @@ const Login: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-space-900 flex items-center justify-center px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-electric/5 via-transparent to-cyber/5 pointer-events-none" />
-      <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-electric/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-1/3 right-1/4 w-[300px] h-[300px] bg-cyber/10 rounded-full blur-[80px] pointer-events-none" />
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    background: '#18181b',
+    border: '1px solid #27272a',
+    borderRadius: '12px',
+    padding: '14px 16px 14px 48px',
+    color: '#fff',
+    fontSize: '16px',
+    outline: 'none',
+    transition: 'all 0.2s'
+  };
 
-      <div className="w-full max-w-md relative z-10">
-        <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8">
+  return (
+    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+      {/* Background effects */}
+      <div style={{ position: 'absolute', top: '20%', left: '20%', width: '400px', height: '400px', background: 'rgba(168,85,247,0.1)', borderRadius: '50%', filter: 'blur(100px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '20%', right: '20%', width: '300px', height: '300px', background: 'rgba(34,211,238,0.1)', borderRadius: '50%', filter: 'blur(80px)', pointerEvents: 'none' }} />
+
+      <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 10 }}>
+        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#a1a1aa', textDecoration: 'none', marginBottom: '32px', fontSize: '14px' }}>
           <ArrowLeft size={18} /> Back to Home
         </Link>
 
-        <div className="glass-panel rounded-2xl p-8 border border-white/10">
-          <div className="text-center mb-8">
-            <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-electric to-cyber mb-2">
-              CodeX
+        <div style={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '24px', padding: '40px' }}>
+          {/* Logo */}
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #a855f7, #22d3ee)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Code style={{ width: '28px', height: '28px', color: '#fff' }} />
+              </div>
+              <span style={{ fontSize: '28px', fontWeight: 'bold', background: 'linear-gradient(to right, #c084fc, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CodeX</span>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-slate-400">Sign in to continue your coding journey</p>
+            <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>Welcome Back</h1>
+            <p style={{ color: '#71717a', fontSize: '16px' }}>Sign in to continue your coding journey</p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3 text-red-400">
-              <AlertCircle size={20} />
-              <span className="text-sm">{error}</span>
+            <div style={{ marginBottom: '24px', padding: '16px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <AlertCircle size={20} style={{ color: '#f87171' }} />
+              <span style={{ color: '#f87171', fontSize: '14px' }}>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#d4d4d8', marginBottom: '8px' }}>Email</label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#52525b' }} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-space-800 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/50 transition-all"
+                  style={inputStyle}
                   placeholder="you@example.com"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#d4d4d8', marginBottom: '8px' }}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#52525b' }} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-space-800 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/50 transition-all"
+                  style={inputStyle}
                   placeholder="••••••••"
                   required
                 />
@@ -87,11 +103,27 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-electric hover:bg-blue-600 rounded-xl text-white font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: 'linear-gradient(to right, #a855f7, #22d3ee)',
+                border: 'none',
+                borderRadius: '12px',
+                color: '#fff',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
             >
               {loading ? (
                 <>
-                  <Loader2 className="animate-spin" size={20} />
+                  <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
                   Signing in...
                 </>
               ) : (
@@ -100,16 +132,25 @@ const Login: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-slate-400">
+          <div style={{ marginTop: '32px', textAlign: 'center' }}>
+            <p style={{ color: '#71717a', fontSize: '14px' }}>
               Don't have an account?{' '}
-              <Link to="/register" className="text-electric hover:underline font-medium">
+              <Link to="/register" style={{ color: '#a855f7', textDecoration: 'none', fontWeight: '500' }}>
                 Create one
               </Link>
             </p>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        input::placeholder { color: #52525b; }
+        input:focus { border-color: #a855f7; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
+      `}</style>
     </div>
   );
 };
