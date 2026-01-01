@@ -167,6 +167,9 @@ app.get('/api/problems', async (req, res) => {
 // Get platform stats
 app.get('/api/stats', async (req, res) => {
   try {
+    // Auto-seed problems if empty
+    await seedProblems();
+    
     const [problemCount, userCount, submissionCount] = await Promise.all([
       Problem.countDocuments(),
       User.countDocuments(),

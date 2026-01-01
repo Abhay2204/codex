@@ -97,6 +97,8 @@ const Home: React.FC = () => {
           api.getStats(),
           api.getLeaderboard()
         ]);
+        console.log('Stats:', statsData);
+        console.log('Leaderboard:', leaderboardData);
         setStats(statsData);
         setLeaderboard(leaderboardData.slice(0, 5));
       } catch (error) {
