@@ -21,39 +21,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection with better error handling for serverless
-let isConnected = false;
-
-const connectDB = async () => {
-  if (isConnected) {
-    return;
-  }
-  
-  try {
-    if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is not set');
-    }
-    
-    await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    isConnected = true;
-    console.log('Connected to MongoDB');
-  } catch (err) {
-    console.error('MongoDB connection error:', err);
-    throw err;
-  }
-};
-
-// Middleware to ensure DB connection
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    res.status(500).json({ error: 'Database connection failed: ' + error.message });
-  }
-});
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000,
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 // Auth middleware
 const auth = async (req, res, next) => {
