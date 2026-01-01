@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Play, RotateCcw, SkipBack, SkipForward, ChevronLeft, ChevronRight, Loader2, Terminal, ChevronDown, X, Copy, Check, Maximize2, Minimize2, FlaskConical, Eye } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight, Loader2, Terminal, ChevronDown, X, Copy, Check, FlaskConical, Eye } from 'lucide-react';
 import Visualizer from '../components/Visualizer';
 import TestResults from '../components/TestResults';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { LANGUAGE_TEMPLATES } from '../constants';
-import { VisualizationFrame, TestResult, SupportedLanguage, ExecutionResult } from '../types';
-import { generateVisualizationTrace, runCodeAgainstTestCases, executeCode, generateSolution } from '../services/gemini';
+import { TestResult, SupportedLanguage, ExecutionResult } from '../types';
+import { generateVisualizationHTML, runCodeAgainstTestCases, executeCode, generateSolution } from '../services/gemini';
 import confetti from 'canvas-confetti';
 
 interface Problem {
@@ -30,17 +30,12 @@ const ProblemSolve: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<SupportedLanguage>('javascript');
   const [code, setCode] = useState('');
-  const [activeTab, setActiveTab] = useState<'desc'>('desc');
-  const [bottomTab, setBottomTab] = useState<'visualizer' | 'tests' | 'console'>('visualizer');
+  const [bottomTab, setBottomTab] = useState<'tests' | 'console'>('tests');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isVisualizerFullscreen, setIsVisualizerFullscreen] = useState(false);
+  const [isVisualizerOpen, setIsVisualizerOpen] = useState(false);
   
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoadingTrace, setIsLoadingTrace] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [frames, setFrames] = useState<VisualizationFrame[] | null>(null);
-  const timerRef = useRef<number | null>(null);
-  const [breakpoints, setBreakpoints] = useState<Set<number>>(new Set());
+  const [isLoadingViz, setIsLoadingViz] = useState(false);
+  const [vizHTML, setVizHTML] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<TestResult[] | null>(null);
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
   const [isRunningTests, setIsRunningTests] = useState(false);
@@ -84,31 +79,19 @@ const ProblemSolve: React.FC = () => {
     }
   }, [code, id, language]);
 
-  const toggleBreakpoint = (lineNum: number) => {
-    setBreakpoints(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(lineNum)) newSet.delete(lineNum);
-      else newSet.add(lineNum);
-      return newSet;
-    });
-  };
-
   const handleRunVisualization = async () => {
     if (!problem) return;
-    setBottomTab('visualizer');
-    setIsLoadingTrace(true);
-    setIsPlaying(false);
-    setFrames(null);
+    setIsVisualizerOpen(true);
+    setIsLoadingViz(true);
+    setVizHTML(null);
     
     try {
-      const generatedFrames = await generateVisualizationTrace(code, problem.title);
-      setFrames(generatedFrames);
-      setCurrentStep(0);
-      setIsPlaying(true);
+      const html = await generateVisualizationHTML(code, problem.title);
+      setVizHTML(html);
     } catch (error) {
-      console.error("Failed to generate trace", error);
+      console.error("Failed to generate visualization", error);
     } finally {
-      setIsLoadingTrace(false);
+      setIsLoadingViz(false);
     }
   };
 
@@ -188,37 +171,6 @@ const ProblemSolve: React.FC = () => {
     });
   };
 
-  const handleReset = () => {
-    setIsPlaying(false);
-    setCurrentStep(0);
-    if (timerRef.current) window.clearInterval(timerRef.current);
-  };
-
-  useEffect(() => {
-    if (isPlaying && frames) {
-      timerRef.current = window.setInterval(() => {
-        setCurrentStep(prev => {
-          const nextStep = prev + 1;
-          if (nextStep < frames.length && breakpoints.has(frames[nextStep].line)) {
-            setIsPlaying(false);
-            return nextStep;
-          }
-          if (nextStep >= frames.length - 1) {
-            setIsPlaying(false);
-            if (timerRef.current) window.clearInterval(timerRef.current);
-            return Math.min(nextStep, frames.length - 1);
-          }
-          return nextStep;
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-    }
-    return () => {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-    };
-  }, [isPlaying, frames, breakpoints]);
-
   if (loading || !problem) {
     return (
       <div className="h-screen flex items-center justify-center bg-space-900">
@@ -281,9 +233,9 @@ const ProblemSolve: React.FC = () => {
              {isRunningTests ? <Loader2 className="w-3 h-3 animate-spin" /> : <FlaskConical className="w-3 h-3" />} Test
            </button>
            
-           <button onClick={handleRunVisualization} disabled={isLoadingTrace} className="hidden md:flex px-4 py-1.5 rounded-lg bg-electric hover:bg-blue-600 text-xs font-bold tracking-wide shadow-lg shadow-blue-500/20 transition-all items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed uppercase text-white">
-             {isLoadingTrace ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />} 
-             {isLoadingTrace ? "Tracing..." : "Visualize"}
+           <button onClick={handleRunVisualization} disabled={isLoadingViz} className="hidden md:flex px-4 py-1.5 rounded-lg bg-electric hover:bg-blue-600 text-xs font-bold tracking-wide shadow-lg shadow-blue-500/20 transition-all items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed uppercase text-white">
+             {isLoadingViz ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3 fill-current" />} 
+             {isLoadingViz ? "Loading..." : "Visualize"}
            </button>
 
            <button onClick={handleSubmit} disabled={isSubmitting} className="px-5 py-1.5 rounded-lg bg-neon text-space-900 hover:bg-green-400 text-xs font-bold tracking-wide shadow-lg shadow-green-500/20 transition-all flex items-center gap-2 disabled:opacity-50 uppercase">
@@ -300,7 +252,7 @@ const ProblemSolve: React.FC = () => {
 
            <div className={`flex flex-col h-full overflow-hidden ${!isSidebarOpen && 'invisible'}`}>
                <div className="flex border-b border-white/5 shrink-0 bg-space-800/30">
-                  <button onClick={() => setActiveTab('desc')} className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider border-b-2 transition-colors border-electric text-white bg-white/5`}>Description</button>
+                  <div className="flex-1 py-3 text-xs font-semibold uppercase tracking-wider border-b-2 border-electric text-white bg-white/5 text-center">Description</div>
                </div>
                
                <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
@@ -350,49 +302,24 @@ const ProblemSolve: React.FC = () => {
               <div className="flex-1 relative font-mono text-sm overflow-hidden flex">
                  <div className="w-12 bg-[#1e1e1e] text-[#6e7681] flex flex-col items-end pr-3 pt-4 select-none border-r border-[#333] z-10 shrink-0">
                     {lines.map((ln) => (
-                        <div key={ln} onClick={() => toggleBreakpoint(ln)} className="leading-6 h-6 cursor-pointer hover:text-slate-300 relative group w-full text-right">
-                            {breakpoints.has(ln) && <div className="absolute top-1.5 left-2 w-3 h-3 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>}
-                            <span className={breakpoints.has(ln) ? 'opacity-0' : 'group-hover:opacity-100'}>{ln}</span>
+                        <div key={ln} className="leading-6 h-6 w-full text-right">
+                            <span>{ln}</span>
                         </div>
                     ))}
                  </div>
                  
                  <textarea value={code} onChange={(e) => setCode(e.target.value)} className="flex-1 bg-[#1e1e1e] text-[#d4d4d4] p-4 resize-none focus:outline-none leading-6 whitespace-pre font-mono" spellCheck="false" autoCapitalize="off" autoComplete="off" autoCorrect="off" />
-                 
-                 {bottomTab === 'visualizer' && frames && frames[currentStep] && (
-                     <div className="absolute left-12 right-0 bg-yellow-500/20 pointer-events-none transition-all duration-300 border-l-2 border-yellow-500" style={{ top: `${(frames[currentStep].line - 1) * 24 + 16}px`, height: '24px' }}></div>
-                 )}
               </div>
            </div>
 
            <div className="h-[40%] flex border-t border-white/10 bg-space-900 relative">
                <div className="flex-1 flex flex-col relative min-w-0">
                   <div className="flex items-center border-b border-white/5 bg-space-800/50 shrink-0">
-                      <button onClick={() => setBottomTab('visualizer')} className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wide border-b-2 transition-all ${bottomTab === 'visualizer' ? 'border-electric text-white bg-white/5' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>Visualization</button>
                       <button onClick={() => setBottomTab('tests')} className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wide border-b-2 transition-all ${bottomTab === 'tests' ? 'border-electric text-white bg-white/5' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>Test Results</button>
                       <button onClick={() => setBottomTab('console')} className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wide border-b-2 transition-all ${bottomTab === 'console' ? 'border-electric text-white bg-white/5' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>Console</button>
-                      
-                      {bottomTab === 'visualizer' && frames && (
-                          <div className="ml-auto flex items-center gap-1 pr-2">
-                              <button onClick={() => setCurrentStep(Math.max(0, currentStep - 1))} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors"><SkipBack className="w-3 h-3" /></button>
-                              <button onClick={() => setIsPlaying(!isPlaying)} className="p-1.5 hover:bg-space-700 rounded text-electric transition-colors">
-                                  {isPlaying ? <div className="w-3 h-3 border-l-2 border-r-2 border-current mx-0.5" /> : <Play className="w-3 h-3 fill-current" />}
-                              </button>
-                              <button onClick={() => setCurrentStep(Math.min(frames.length - 1, currentStep + 1))} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors"><SkipForward className="w-3 h-3" /></button>
-                              <div className="w-px h-4 bg-white/10 mx-1"></div>
-                              <button onClick={handleReset} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors" title="Reset"><RotateCcw className="w-3 h-3" /></button>
-                              <button onClick={() => setIsVisualizerFullscreen(true)} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors" title="Fullscreen"><Maximize2 className="w-3 h-3" /></button>
-                          </div>
-                      )}
-                      {bottomTab === 'visualizer' && !frames && (
-                          <div className="ml-auto flex items-center gap-1 pr-2">
-                              <button onClick={() => setIsVisualizerFullscreen(true)} className="p-1.5 hover:bg-space-700 rounded text-slate-300 transition-colors" title="Fullscreen"><Maximize2 className="w-3 h-3" /></button>
-                          </div>
-                      )}
                   </div>
 
                   <div className="flex-1 overflow-hidden relative bg-space-900">
-                    {bottomTab === 'visualizer' && <Visualizer type={problem.visualizationType as any} frame={frames ? frames[currentStep] : null} isPlaying={isPlaying} />}
                     {bottomTab === 'tests' && <TestResults results={testResults} isLoading={isRunningTests} />}
                     {bottomTab === 'console' && (
                         <div className="w-full h-full p-4 font-mono text-sm overflow-auto">
@@ -420,35 +347,23 @@ const ProblemSolve: React.FC = () => {
         </div>
       </div>
       
-      {/* Fullscreen Visualizer Modal */}
-      {isVisualizerFullscreen && (
-        <div className="fixed inset-0 bg-space-900 z-[100] flex flex-col">
+      {/* Visualization Popup */}
+      {isVisualizerOpen && (
+        <div className="fixed inset-0 bg-black z-[100] flex flex-col">
           <div className="h-14 bg-space-800 border-b border-white/10 flex items-center justify-between px-6 shrink-0">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-bold text-white">Visualization - {problem.title}</h2>
-              {frames && (
-                <span className="text-xs text-slate-400">Step {currentStep + 1} of {frames.length}</span>
-              )}
+            <div className="flex items-center gap-3">
+              <Play className="w-5 h-5 text-electric" />
+              <h2 className="text-lg font-bold text-white">{problem.title} - Visualization</h2>
             </div>
-            <div className="flex items-center gap-2">
-              {frames && (
-                <>
-                  <button onClick={() => setCurrentStep(Math.max(0, currentStep - 1))} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors"><SkipBack className="w-4 h-4" /></button>
-                  <button onClick={() => setIsPlaying(!isPlaying)} className="p-2 hover:bg-space-700 rounded-lg text-electric transition-colors">
-                    {isPlaying ? <div className="w-4 h-4 border-l-2 border-r-2 border-current mx-0.5" /> : <Play className="w-4 h-4 fill-current" />}
-                  </button>
-                  <button onClick={() => setCurrentStep(Math.min(frames.length - 1, currentStep + 1))} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors"><SkipForward className="w-4 h-4" /></button>
-                  <button onClick={handleReset} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors" title="Reset"><RotateCcw className="w-4 h-4" /></button>
-                  <div className="w-px h-6 bg-white/10 mx-2"></div>
-                </>
-              )}
-              <button onClick={() => setIsVisualizerFullscreen(false)} className="p-2 hover:bg-space-700 rounded-lg text-slate-300 transition-colors" title="Exit Fullscreen">
-                <Minimize2 className="w-4 h-4" />
-              </button>
-            </div>
+            <button 
+              onClick={() => setIsVisualizerOpen(false)} 
+              className="p-2 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-slate-300 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <Visualizer type={problem.visualizationType as any} frame={frames ? frames[currentStep] : null} isPlaying={isPlaying} />
+          <div className="flex-1">
+            <Visualizer htmlContent={vizHTML} isLoading={isLoadingViz} />
           </div>
         </div>
       )}
