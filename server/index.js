@@ -9,15 +9,9 @@ import Room from './models/Room.js';
 import Submission from './models/Submission.js';
 import { phase1Problems, phase2Problems, phase3Problems, phase4Problems } from './seedProblems.js';
 
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 // Only load .env file if not on Vercel (Vercel uses dashboard env vars)
 if (!process.env.VERCEL) {
-  dotenv.config({ path: join(__dirname, '.env') });
+  dotenv.config();
 }
 
 const app = express();
