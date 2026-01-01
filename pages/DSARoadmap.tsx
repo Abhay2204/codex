@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  ChevronDown, ChevronRight, CheckCircle2, Circle, Lock, 
-  Code, BookOpen, Trophy, ArrowLeft, Target,
-  Zap, Brain, GitBranch, Layers, Binary, Network, Hash,
-  TreeDeciduous, BarChart3, Workflow, Boxes, Search
+  ChevronDown, ChevronRight, Circle, Code, ArrowLeft, Target,
+  Zap, Brain, Network, TreeDeciduous, BarChart3, Boxes, Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -399,13 +397,11 @@ const PhaseCard: React.FC<{ phase: Phase; index: number; isExpanded: boolean; on
       transition={{ delay: index * 0.1 }}
       className="relative"
     >
-      {/* Connection line */}
       {index < phases.length - 1 && (
         <div className="absolute left-8 top-full w-0.5 h-8 bg-gradient-to-b from-zinc-700 to-transparent z-0" />
       )}
       
       <div className={`${phase.bgColor} border ${phase.borderColor} rounded-2xl overflow-hidden transition-all`}>
-        {/* Phase Header */}
         <button
           onClick={onToggle}
           className="w-full p-6 flex items-center gap-4 text-left hover:bg-white/5 transition-colors"
@@ -429,16 +425,12 @@ const PhaseCard: React.FC<{ phase: Phase; index: number; isExpanded: boolean; on
               <div className="text-2xl font-bold text-white">{phase.topics.length}</div>
               <div className="text-xs text-zinc-500">Topics</div>
             </div>
-            <motion.div
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
+            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown className="w-6 h-6 text-zinc-400" />
             </motion.div>
           </div>
         </button>
         
-        {/* Topics List */}
         <AnimatePresence>
           {isExpanded && (
             <motion.div
@@ -449,7 +441,7 @@ const PhaseCard: React.FC<{ phase: Phase; index: number; isExpanded: boolean; on
               className="overflow-hidden"
             >
               <div className="px-6 pb-6 space-y-3">
-                {phase.topics.map((topic, topicIndex) => (
+                {phase.topics.map((topic) => (
                   <TopicCard key={topic.id} topic={topic} phaseColor={phase.color} />
                 ))}
               </div>
@@ -500,9 +492,9 @@ const TopicCard: React.FC<{ topic: Topic; phaseColor: string }> = ({ topic, phas
             className="border-t border-zinc-800"
           >
             <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {topic.subtopics.map((subtopic, idx) => (
+              {topic.subtopics.map((subtopic, i) => (
                 <div
-                  key={idx}
+                  key={i}
                   className="px-3 py-2 bg-zinc-800/50 rounded-lg text-sm text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
                   {subtopic}
@@ -543,19 +535,19 @@ const DSARoadmap: React.FC = () => {
             <Link to="/" className="text-zinc-400 hover:text-white transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div className="text-xl font-bold text-white flex items-center gap-2">
+            <Link to="/" className="text-xl font-bold text-white flex items-center gap-2">
               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
                 <Code className="w-5 h-5 text-white" />
               </div>
               CodeX
-            </div>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/problems" className="text-zinc-400 hover:text-white transition-colors text-sm">
               Problems
             </Link>
-            <Link to="/dashboard" className="px-4 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-lg text-sm font-medium">
-              Dashboard
+            <Link to="/login" className="px-4 py-2 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-lg text-sm font-medium">
+              Get Started
             </Link>
           </div>
         </div>
@@ -589,11 +581,11 @@ const DSARoadmap: React.FC = () => {
             
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto mb-8">
               A structured path from programming basics to advanced algorithms. 
-              Follow this roadmap to master Data Structures & Algorithms and ace technical interviews.
+              Master Data Structures & Algorithms and ace technical interviews.
             </p>
 
             {/* Stats */}
-            <div className="flex flex-wrap justify-center gap-8">
+            <div className="flex flex-wrap justify-center gap-8 mb-12">
               <div className="text-center">
                 <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
                   {phases.length}
@@ -619,31 +611,26 @@ const DSARoadmap: React.FC = () => {
                 <div className="text-sm text-zinc-500">Weeks</div>
               </div>
             </div>
-          </motion.div>
 
-          {/* Quick Navigation */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-wrap justify-center gap-3 mb-12"
-          >
-            {phases.map((phase, idx) => {
-              const Icon = phase.icon;
-              return (
-                <button
-                  key={phase.id}
-                  onClick={() => {
-                    setExpandedPhases([phase.id]);
-                    document.getElementById(phase.id)?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2 ${phase.bgColor} border ${phase.borderColor} rounded-full hover:bg-white/10 transition-colors`}
-                >
-                  <Icon className={`w-4 h-4 ${phase.color}`} />
-                  <span className="text-sm text-zinc-300">{phase.title}</span>
-                </button>
-              );
-            })}
+            {/* Quick Navigation */}
+            <div className="flex flex-wrap justify-center gap-3">
+              {phases.map((phase) => {
+                const Icon = phase.icon;
+                return (
+                  <button
+                    key={phase.id}
+                    onClick={() => {
+                      setExpandedPhases([phase.id]);
+                      document.getElementById(phase.id)?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2 ${phase.bgColor} border ${phase.borderColor} rounded-full hover:bg-white/10 transition-colors`}
+                  >
+                    <Icon className={`w-4 h-4 ${phase.color}`} />
+                    <span className="text-sm text-zinc-300">{phase.title}</span>
+                  </button>
+                );
+              })}
+            </div>
           </motion.div>
         </div>
       </section>
@@ -661,52 +648,6 @@ const DSARoadmap: React.FC = () => {
               />
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="px-6 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border border-purple-500/20 rounded-2xl p-8 text-center"
-          >
-            <h2 className="text-2xl font-bold text-white mb-4">Ready to Start Your Journey?</h2>
-            <p className="text-zinc-400 mb-6">
-              Begin with Phase 1 and work your way through. Track your progress and earn XP as you complete problems.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link
-                to="/problems"
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-              >
-                Start Practicing
-              </Link>
-              <Link
-                to="/register"
-                className="px-6 py-3 border border-zinc-700 hover:border-zinc-500 rounded-xl font-medium transition-colors"
-              >
-                Create Account
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Continue Learning */}
-      <section className="px-6 pb-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-zinc-500 mb-4">Continue learning with related roadmaps</p>
-          <div className="flex justify-center gap-4">
-            <button className="px-6 py-3 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-xl hover:bg-blue-500/30 transition-colors">
-              Computer Science
-            </button>
-            <button className="px-6 py-3 bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-xl hover:bg-purple-500/30 transition-colors">
-              System Design
-            </button>
-          </div>
         </div>
       </section>
 
