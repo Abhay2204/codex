@@ -375,14 +375,14 @@ const ProblemSolve: React.FC = () => {
 
       {/* Show Answer Modal */}
       {showAnswerModal && (
-        <AnswerModal problem={problem} onClose={() => setShowAnswerModal(false)} />
+        <AnswerModal problem={problem} language={language} onClose={() => setShowAnswerModal(false)} />
       )}
     </div>
   );
 };
 
 // Answer Modal Component with AI-generated solutions via OpenRouter
-const AnswerModal = ({ problem, onClose }: { problem: Problem; onClose: () => void }) => {
+const AnswerModal = ({ problem, language, onClose }: { problem: Problem; language: string; onClose: () => void }) => {
   const [copied, setCopied] = useState(false);
   const [aiSolution, setAiSolution] = useState<{ solution: string; explanation: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -402,7 +402,7 @@ const AnswerModal = ({ problem, onClose }: { problem: Problem; onClose: () => vo
       const result = await generateSolution(
         problem.title,
         problem.description || '',
-        problem.starterCode || '',
+        language,
         problem.examples || []
       );
       setAiSolution(result);

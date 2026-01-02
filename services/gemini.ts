@@ -85,13 +85,26 @@ Return ONLY JSON array: [{"input":"...","expected":"...","actual":"...","passed"
   }
 };
 
-export const generateSolution = async (problemTitle: string, problemDescription: string, starterCode: string, examples: { input: string; expected: string }[]): Promise<{ solution: string; explanation: string }> => {
+export const generateSolution = async (problemTitle: string, problemDescription: string, language: string, examples: { input: string; expected: string }[]): Promise<{ solution: string; explanation: string }> => {
+  const langNames: Record<string, string> = {
+    javascript: 'JavaScript',
+    python: 'Python',
+    java: 'Java',
+    cpp: 'C++',
+    go: 'Go'
+  };
+  const langName = langNames[language] || 'JavaScript';
+  
   try {
-    const prompt = `Generate solution for: ${problemTitle}
-Description: ${problemDescription}
-Examples: ${examples.map(e => `${e.input} -> ${e.expected}`).join(', ')}
+    const prompt = `Generate a complete working solution in ${langName} for this problem:
 
-Return JSON: {"solution":"code here","explanation":"approach explanation"}`;
+Problem: ${problemTitle}
+Description: ${problemDescription}
+Examples: ${examples.map(e => `Input: ${e.input} → Output: ${e.expected}`).join('\n')}
+
+Write clean, efficient ${langName} code with comments explaining the approach.
+
+Return ONLY JSON: {"solution":"complete ${langName} code here","explanation":"brief explanation of approach and complexity"}`;
 
     const response = await callOpenRouter(prompt);
     const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -99,9 +112,9 @@ Return JSON: {"solution":"code here","explanation":"approach explanation"}`;
       const result = JSON.parse(jsonMatch[0]);
       return { solution: String(result.solution || ''), explanation: String(result.explanation || '') };
     }
-    return { solution: '// Error generating solution', explanation: 'Error' };
+    return { solution: `// Error generating ${langName} solution`, explanation: 'Error' };
   } catch (error) {
-    return { solution: '// Error generating solution', explanation: 'Error' };
+    return { solution: `// Error generating ${langName} solution`, explanation: 'Error' };
   }
 };
 

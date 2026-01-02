@@ -119,7 +119,7 @@ const AnswerModal = ({ problem, onClose }: { problem: Problem; onClose: () => vo
       const result = await generateSolution(
         problem.title,
         problem.description || '',
-        problem.starterCode || '',
+        'javascript', // Default to JavaScript for practice DSA page
         problem.examples || []
       );
       setAiSolution(result);
