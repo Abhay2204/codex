@@ -19,32 +19,49 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection with improved timeout and pooling settings
-mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 30000, // Increased to 30 seconds
-  socketTimeoutMS: 45000, // Socket timeout 45 seconds
-  connectTimeoutMS: 30000, // Connection timeout 30 seconds
-  maxPoolSize: 10, // Maximum number of connections in the pool
-  minPoolSize: 2, // Minimum number of connections in the pool
-  retryWrites: true,
-  retryReads: true,
-})
-.then(() => console.log('✅ Connected to MongoDB'))
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err);
-  console.error('Retrying connection in 5 seconds...');
-  setTimeout(() => {
-    mongoose.connect(process.env.MONGODB_URI, {
+// MongoDB connection caching for serverless (Vercel)
+let cachedConnection = null;
+
+const connectToDatabase = async () => {
+  // If already connected, return cached connection
+  if (cachedConnection && mongoose.connection.readyState === 1) {
+    console.log('♻️ Using cached MongoDB connection');
+    return cachedConnection;
+  }
+
+  // If connection exists but not ready, wait for it
+  if (mongoose.connection.readyState === 2) {
+    console.log('⏳ Waiting for existing connection...');
+    await new Promise(resolve => {
+      mongoose.connection.once('connected', resolve);
+    });
+    return mongoose.connection;
+  }
+
+  console.log('🔌 Creating new MongoDB connection...');
+  
+  try {
+    const connection = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 30000,
       maxPoolSize: 10,
-      minPoolSize: 2,
+      minPoolSize: 1,
       retryWrites: true,
       retryReads: true,
+      // Serverless-specific optimizations
+      bufferCommands: false, // Disable buffering for serverless
+      maxIdleTimeMS: 10000, // Close idle connections after 10s
     });
-  }, 5000);
-});
+
+    cachedConnection = connection;
+    console.log('✅ Connected to MongoDB');
+    return connection;
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err);
+    throw err;
+  }
+};
 
 // MongoDB connection event listeners for debugging
 mongoose.connection.on('connected', () => {
@@ -53,22 +70,34 @@ mongoose.connection.on('connected', () => {
 
 mongoose.connection.on('error', (err) => {
   console.error('❌ Mongoose connection error:', err);
+  cachedConnection = null; // Clear cache on error
 });
 
 mongoose.connection.on('disconnected', () => {
   console.log('⚠️ Mongoose disconnected from MongoDB');
+  cachedConnection = null; // Clear cache on disconnect
 });
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('MongoDB connection closed through app termination');
-  process.exit(0);
-});
+// Initialize connection for non-serverless environments
+if (process.env.VERCEL !== '1') {
+  connectToDatabase().catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+  });
+  
+  // Graceful shutdown
+  process.on('SIGINT', async () => {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed through app termination');
+    process.exit(0);
+  });
+}
 
 // Auth middleware
 const auth = async (req, res, next) => {
   try {
+    // Ensure database connection in serverless environment
+    await connectToDatabase();
+    
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'No token provided' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -79,16 +108,25 @@ const auth = async (req, res, next) => {
   }
 };
 
+// Database connection middleware for all routes
+const ensureDbConnection = async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(503).json({ error: 'Database connection failed. Please try again.' });
+  }
+};
+
+// Apply database connection middleware to all routes
+app.use(ensureDbConnection);
+
 // AUTH ROUTES
 app.post('/api/register', async (req, res) => {
   try {
-    // Check if mongoose is connected
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({ error: 'Database connection not ready. Please try again.' });
-    }
-    
     const { name, email, password } = req.body;
-    const existingUser = await User.findOne({ email }).maxTimeMS(10000);
+    const existingUser = await User.findOne({ email }).maxTimeMS(15000);
     if (existingUser) return res.status(400).json({ error: 'Email already registered' });
     
     const user = new User({ name, email, password });
@@ -153,16 +191,11 @@ app.put('/api/user/stats', auth, async (req, res) => {
 // LEADERBOARD ROUTES
 app.get('/api/leaderboard', async (req, res) => {
   try {
-    // Check if mongoose is connected
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({ error: 'Database connection not ready. Please try again.' });
-    }
-    
     const users = await User.find()
       .select('name xp solved country rank')
       .sort({ xp: -1 })
       .limit(100)
-      .maxTimeMS(10000); // Add query timeout of 10 seconds
+      .maxTimeMS(15000); // Query timeout of 15 seconds
     res.json(users);
   } catch (error) {
     console.error('Leaderboard error:', error);
@@ -220,22 +253,17 @@ app.get('/api/problems', async (req, res) => {
 // Get platform stats
 app.get('/api/stats', async (req, res) => {
   try {
-    // Check if mongoose is connected
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({ error: 'Database connection not ready. Please try again.' });
-    }
-    
     // Auto-seed problems if empty
     await seedProblems();
     
     const [problemCount, userCount, submissionCount] = await Promise.all([
-      Problem.countDocuments().maxTimeMS(10000),
-      User.countDocuments().maxTimeMS(10000),
-      Submission.countDocuments().maxTimeMS(10000)
+      Problem.countDocuments().maxTimeMS(15000),
+      User.countDocuments().maxTimeMS(15000),
+      Submission.countDocuments().maxTimeMS(15000)
     ]);
     
     // Get problem counts by category
-    const problems = await Problem.find().select('tags').maxTimeMS(10000);
+    const problems = await Problem.find().select('tags').maxTimeMS(15000);
     const categoryCounts = {
       'Arrays & Strings': 0,
       'Linked Lists': 0,
