@@ -19,12 +19,52 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
+// MongoDB connection with improved timeout and pooling settings
 mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 30000, // Increased to 30 seconds
+  socketTimeoutMS: 45000, // Socket timeout 45 seconds
+  connectTimeoutMS: 30000, // Connection timeout 30 seconds
+  maxPoolSize: 10, // Maximum number of connections in the pool
+  minPoolSize: 2, // Minimum number of connections in the pool
+  retryWrites: true,
+  retryReads: true,
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+  console.error('Retrying connection in 5 seconds...');
+  setTimeout(() => {
+    mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      retryWrites: true,
+      retryReads: true,
+    });
+  }, 5000);
+});
+
+// MongoDB connection event listeners for debugging
+mongoose.connection.on('connected', () => {
+  console.log('📡 Mongoose connected to MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ Mongoose connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ Mongoose disconnected from MongoDB');
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed through app termination');
+  process.exit(0);
+});
 
 // Auth middleware
 const auth = async (req, res, next) => {
@@ -42,8 +82,13 @@ const auth = async (req, res, next) => {
 // AUTH ROUTES
 app.post('/api/register', async (req, res) => {
   try {
+    // Check if mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ error: 'Database connection not ready. Please try again.' });
+    }
+    
     const { name, email, password } = req.body;
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }).maxTimeMS(10000);
     if (existingUser) return res.status(400).json({ error: 'Email already registered' });
     
     const user = new User({ name, email, password });
@@ -52,6 +97,7 @@ app.post('/api/register', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, xp: user.xp, solved: user.solved, streak: user.streak, rank: user.rank } });
   } catch (error) {
+    console.error('Register error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -107,12 +153,19 @@ app.put('/api/user/stats', auth, async (req, res) => {
 // LEADERBOARD ROUTES
 app.get('/api/leaderboard', async (req, res) => {
   try {
+    // Check if mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ error: 'Database connection not ready. Please try again.' });
+    }
+    
     const users = await User.find()
       .select('name xp solved country rank')
       .sort({ xp: -1 })
-      .limit(100);
+      .limit(100)
+      .maxTimeMS(10000); // Add query timeout of 10 seconds
     res.json(users);
   } catch (error) {
+    console.error('Leaderboard error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -167,17 +220,22 @@ app.get('/api/problems', async (req, res) => {
 // Get platform stats
 app.get('/api/stats', async (req, res) => {
   try {
+    // Check if mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ error: 'Database connection not ready. Please try again.' });
+    }
+    
     // Auto-seed problems if empty
     await seedProblems();
     
     const [problemCount, userCount, submissionCount] = await Promise.all([
-      Problem.countDocuments(),
-      User.countDocuments(),
-      Submission.countDocuments()
+      Problem.countDocuments().maxTimeMS(10000),
+      User.countDocuments().maxTimeMS(10000),
+      Submission.countDocuments().maxTimeMS(10000)
     ]);
     
     // Get problem counts by category
-    const problems = await Problem.find().select('tags');
+    const problems = await Problem.find().select('tags').maxTimeMS(10000);
     const categoryCounts = {
       'Arrays & Strings': 0,
       'Linked Lists': 0,
@@ -219,6 +277,7 @@ app.get('/api/stats', async (req, res) => {
       categories: categoryCounts
     });
   } catch (error) {
+    console.error('Stats error:', error);
     res.status(500).json({ error: error.message });
   }
 });
